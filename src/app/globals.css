@@ -1,26 +1,126 @@
 @import "tailwindcss";
 
 :root {
+  /* Psalmlog-inspired color palette */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f1419;
+  --primary: #141a21;           /* Dark navy - Psalmlog primary */
+  --primary-hover: #1e2832;
+  --primary-foreground: #f7f8f9;
+  --secondary: #f5f5f4;         /* Light neutral gray */
+  --secondary-foreground: #0f1419;
+  --accent: #e8a89c;            /* Warm coral accent */
+  --accent-foreground: #0f1419;
+  --muted: #71717a;
+  --muted-foreground: #a1a1aa;
+  --border: #e4e4e7;
+  --ring: #0f1419;
+  --radius: 0.5rem;             /* 8px consistent rounding */
+
+  /* Font families */
+  --font-sans: var(--font-work-sans), system-ui, -apple-system, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-work-sans);
+  --font-serif: var(--font-playfair);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-work-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Serif font for headlines */
+.font-serif {
+  font-family: var(--font-playfair), Georgia, serif;
+}
+
+/* Section label style - uppercase with letter spacing */
+.section-label {
+  @apply text-xs font-medium tracking-[0.2em] uppercase text-[var(--muted)];
+}
+
+/* Utility classes for consistent styling */
+.container-page {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center px-4 py-2.5 bg-[var(--primary)] text-[var(--primary-foreground)] font-medium rounded-lg hover:bg-[var(--primary-hover)] transition-colors shadow-sm;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center px-4 py-2.5 bg-[var(--secondary)] text-[var(--secondary-foreground)] font-medium rounded-lg hover:bg-gray-100 transition-colors border border-[var(--border)];
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center px-4 py-2.5 border border-[var(--border)] text-[var(--foreground)] font-medium rounded-lg hover:bg-[var(--secondary)] transition-colors;
+}
+
+.card {
+  @apply bg-white rounded-lg border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow;
+}
+
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--secondary)] text-[var(--foreground)];
+}
+
+.badge-primary {
+  @apply bg-[var(--primary)] text-[var(--primary-foreground)];
+}
+
+.badge-secondary {
+  @apply bg-slate-100 text-slate-700;
+}
+
+.badge-accent {
+  @apply bg-amber-50 text-amber-800;
+}
+
+/* Pastel tag colors for variety */
+.badge-pink {
+  @apply bg-pink-50 text-pink-700 border border-pink-100;
+}
+
+.badge-blue {
+  @apply bg-blue-50 text-blue-700 border border-blue-100;
+}
+
+.badge-green {
+  @apply bg-emerald-50 text-emerald-700 border border-emerald-100;
+}
+
+.badge-yellow {
+  @apply bg-amber-50 text-amber-700 border border-amber-100;
+}
+
+.badge-purple {
+  @apply bg-purple-50 text-purple-700 border border-purple-100;
+}
+
+.badge-coral {
+  @apply bg-[#fef2f0] text-[#9a6458] border border-[#fde8e4];
+}
+
+/* Focus ring for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:ring-offset-2;
 }

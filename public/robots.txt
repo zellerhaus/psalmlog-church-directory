@@ -1,0 +1,16 @@
+# Psalmlog Church Directory - robots.txt
+# https://psalmlog.com
+
+User-agent: *
+Allow: /
+
+# Block API endpoints and internal routes
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Block search results with parameters to avoid duplicate content
+Disallow: /churches/search?*
+
+# Sitemap location
+Sitemap: https://psalmlog.com/churches/sitemap.xml

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run seed:*)",
+      "Bash(npm run enrich:all:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsx:*)",
+      "Bash(pkill:*)",
+      "Bash(source .env.local)",
+      "Bash(curl:*)",
+      "Bash(npm run content:all:*)",
+      "Bash(for offset in 0 1000 2000 3000 4000 5000 6000 7000 8000 9000 10000 11000 12000 13000 14000 15000)",
+      "Bash(do)",
+      "Bash(done)",
+      "Bash(sort curl -s \"https://euarfavstvqkcaymbovi.supabase.co/rest/v1/city_content?select=state_abbr\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1YXJmYXZzdHZxa2NheW1ib3ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0MjY5MDMsImV4cCI6MjA4NDAwMjkwM30.vYOr9pdhlHS7nbbFKNIkrykFu27qhfi6DBTWGqcLwhE\" -H \"Range: 0-9999\")",
+      "Read(//tmp/**)",
+      "Bash(grep:*)",
+      "Bash(gh repo create:*)",
+      "Bash(npm run enrich:*)",
+      "Bash(git diff:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

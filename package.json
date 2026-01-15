@@ -6,15 +6,31 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "tsx scripts/seed-churches.ts",
+    "seed:dry": "tsx scripts/seed-churches.ts --dry-run --verbose",
+    "seed:v2": "tsx scripts/seed-churches-v2.ts",
+    "seed:v2:dry": "tsx scripts/seed-churches-v2.ts --dry-run --verbose",
+    "enrich": "tsx scripts/enrich-churches.ts",
+    "enrich:all": "tsx scripts/enrich-churches.ts --all --verbose",
+    "extract": "tsx scripts/extract-church-data.ts",
+    "extract:all": "tsx scripts/extract-church-data.ts --all --verbose",
+    "content:states": "tsx scripts/generate-location-content.ts --states",
+    "content:cities": "tsx scripts/generate-location-content.ts --cities",
+    "content:all": "tsx scripts/generate-location-content.ts --all",
+    "content:stats": "tsx scripts/generate-location-content.ts --all --stats-only"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.90.1",
+    "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "dotenv": "^16.4.5",
+    "tsx": "^4.19.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
