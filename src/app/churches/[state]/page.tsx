@@ -40,8 +40,8 @@ export async function generateMetadata({ params }: StatePageProps): Promise<Meta
   }
 
   const canonicalUrl = `${SITE_URL}/churches/${stateSlug}`;
-  const title = `Churches in ${stateInfo.name} | ${SITE_NAME}`;
-  const description = `Find churches in ${stateInfo.name}. Browse by city, denomination, and worship style. Discover the perfect church community for you.`;
+  const title = `Churches in ${stateInfo.name}`;
+  const description = `Find churches in ${stateInfo.name}. Browse by city, denomination, and worship style.`;
 
   return {
     title,
@@ -220,9 +220,9 @@ export default async function StatePage({ params }: StatePageProps) {
             ) : (
               <div className="text-center py-12 bg-[var(--secondary)] rounded-lg">
                 <MapPin className="w-12 h-12 text-[var(--muted)] mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">
+                <p className="text-lg font-medium text-[var(--foreground)] mb-2">
                   No cities found yet
-                </h3>
+                </p>
                 <p className="text-[var(--muted)] max-w-md mx-auto">
                   We&apos;re still building our database for {stateInfo.name}.
                   Check back soon or try searching for a specific city.

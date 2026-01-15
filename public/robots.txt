@@ -1,8 +1,10 @@
 # Psalmlog Church Directory - robots.txt
 # https://psalmlog.com
 
+# Default rules for all bots
 User-agent: *
 Allow: /
+Crawl-delay: 1
 
 # Block API endpoints and internal routes
 Disallow: /api/
@@ -11,6 +13,51 @@ Disallow: /admin/
 
 # Block search results with parameters to avoid duplicate content
 Disallow: /churches/search?*
+
+# Block aggressive SEO crawlers
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
+User-agent: serpstatbot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+# Allow major search engines with reasonable crawl rate
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
 
 # Sitemap index (contains references to all chunked sitemaps)
 Sitemap: https://psalmlog.com/sitemap.xml

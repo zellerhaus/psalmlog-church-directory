@@ -105,27 +105,22 @@ export function countWords(...texts: (string | null | undefined)[]): number {
 }
 
 // Check if content meets minimum threshold for indexing
-export function hasEnoughContent(...texts: (string | null | undefined)[]): boolean {
-  return countWords(...texts) >= MIN_CONTENT_WORDS;
+// Currently disabled - all pages are indexed regardless of content length
+export function hasEnoughContent(..._texts: (string | null | undefined)[]): boolean {
+  return true;
 }
 
-// UTM parameters for Psalmlog attribution
-export const UTM_SOURCE = 'church_finder';
-export const UTM_MEDIUM = 'directory';
-
-export function getPsalmlogUrl(campaign: string, content: string): string {
-  const appStoreUrl = process.env.NEXT_PUBLIC_APP_STORE_URL || 'https://apps.apple.com/app/psalmlog';
-  return `${appStoreUrl}?utm_source=${UTM_SOURCE}&utm_medium=${UTM_MEDIUM}&utm_campaign=${campaign}&utm_content=${content}`;
-}
+// App store URLs
+export const APP_STORE_URL = 'https://apps.apple.com/us/app/psalmlog-bible-guidance/id6743382929';
+export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.psalmlog';
 
 // Site metadata
 export const SITE_NAME = 'Psalmlog Church Finder';
-export const SITE_DESCRIPTION = 'Find the right church for your life stage, worship style, and spiritual needs—with visitor-friendly information most directories don\'t provide.';
+export const SITE_DESCRIPTION = 'Find the right church for your life stage and worship style. Browse by denomination with visitor-friendly info.';
 export const SITE_URL = 'https://psalmlog.com';
 
 // Pre-built Psalmlog URLs for common CTAs (usable in client components)
 export const PSALMLOG_URLS = {
-  header: getPsalmlogUrl('header', 'nav_cta'),
-  mobileMenu: getPsalmlogUrl('mobile_menu', 'nav_cta'),
-  footer: getPsalmlogUrl('footer', 'app_link'),
+  appStore: APP_STORE_URL,
+  playStore: PLAY_STORE_URL,
 } as const;

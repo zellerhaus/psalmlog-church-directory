@@ -135,7 +135,7 @@ export default function Header({ popularStates = [] }: HeaderProps) {
               )}
             </div>
             <Link
-              href={PSALMLOG_URLS.header}
+              href={PSALMLOG_URLS.appStore}
               className="btn-primary text-sm"
               target="_blank"
               rel="noopener noreferrer"
@@ -193,7 +193,7 @@ export default function Header({ popularStates = [] }: HeaderProps) {
                 </button>
               </form>
               <Link
-                href={PSALMLOG_URLS.mobileMenu}
+                href={PSALMLOG_URLS.appStore}
                 className="btn-primary text-sm w-fit"
                 target="_blank"
                 rel="noopener noreferrer"

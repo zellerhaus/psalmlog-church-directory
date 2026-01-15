@@ -22,14 +22,14 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
 
   if (query) {
     return {
-      title: `Search Results for "${query}" | ${SITE_NAME}`,
-      description: `Find churches matching "${query}". Filter by denomination, worship style, and programs.`,
+      title: `Search Results for "${query}"`,
+      description: `Find churches matching "${query}". Filter by denomination and worship style.`,
     };
   }
 
   return {
-    title: `Search Churches | ${SITE_NAME}`,
-    description: 'Search for churches by city, zip code, or name. Filter by denomination, worship style, and programs.',
+    title: `Search Churches`,
+    description: 'Search for churches by city, zip code, or name. Filter by denomination and worship style.',
   };
 }
 
@@ -44,9 +44,9 @@ async function SearchResults({
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg">
         <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <p className="text-lg font-medium text-gray-900 mb-2">
           Search for churches
-        </h3>
+        </p>
         <p className="text-gray-600 max-w-md mx-auto">
           Enter a city name or zip code to find churches near you.
         </p>
@@ -86,9 +86,9 @@ async function SearchResults({
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg">
         <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <p className="text-lg font-medium text-gray-900 mb-2">
           No churches found for &quot;{query}&quot;
-        </h3>
+        </p>
         <p className="text-gray-600 max-w-md mx-auto mb-6">
           Try a different search term or browse by state.
         </p>

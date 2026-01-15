@@ -9,8 +9,8 @@ import { getTotalChurchCount, getFeaturedCitiesWithRealCounts, getDenominationSt
 import { SITE_NAME, SITE_DESCRIPTION, US_STATES } from '@/lib/constants';
 
 export const metadata: Metadata = {
-  title: `Find a Church Near You | ${SITE_NAME}`,
-  description: `Search churches across America. Filter by denomination, worship style, and programs. Visitor guides for every church.`,
+  title: `Find a Church Near You`,
+  description: `Search churches across America. Filter by denomination and worship style. Visitor guides for every church.`,
   openGraph: {
     title: `Find a Church Near You | ${SITE_NAME}`,
     description: SITE_DESCRIPTION,
@@ -85,7 +85,8 @@ export default async function ChurchesHomePage() {
       {/* Features Section */}
       <section className="py-16 bg-[var(--secondary)]">
         <div className="container-page">
-          <p className="section-label text-center mb-8">Why Use Psalmlog Church Finder</p>
+          <h2 className="sr-only">Why Use Psalmlog Church Finder</h2>
+          <p className="section-label text-center mb-8" aria-hidden="true">Why Use Psalmlog Church Finder</p>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center mx-auto mb-4 shadow-sm">

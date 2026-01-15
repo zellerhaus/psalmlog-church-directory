@@ -44,10 +44,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const title = `${church.name} - ${church.denomination || 'Church'} in ${church.city}, ${church.state_abbr}`;
+  const title = `${church.name} in ${church.city}, ${church.state_abbr}`;
   const description = church.ai_description
-    ? church.ai_description.slice(0, 155) + '...'
-    : `Find service times, location, and visitor information for ${church.name} in ${church.city}, ${stateInfo.name}. ${church.denomination ? `A ${church.denomination} church` : 'Church'} with programs for all ages.`;
+    ? church.ai_description.slice(0, 152) + '...'
+    : `Service times, location, and visitor info for ${church.name} in ${church.city}, ${stateInfo.abbr}.`;
 
   const canonicalUrl = `https://psalmlog.com/churches/${stateSlug}/${citySlug}/${churchSlug}`;
 

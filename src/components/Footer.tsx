@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { getPopularStates } from '@/lib/data';
-import { getPsalmlogUrl } from '@/lib/constants';
+import { APP_STORE_URL } from '@/lib/constants';
 
 export default async function Footer() {
   const currentYear = new Date().getFullYear();
@@ -47,7 +47,7 @@ export default async function Footer() {
               </li>
               <li>
                 <Link
-                  href={getPsalmlogUrl('footer', 'app_link')}
+                  href={APP_STORE_URL}
                   className="text-[var(--muted)] hover:text-[var(--foreground)] text-sm"
                   target="_blank"
                   rel="noopener noreferrer"

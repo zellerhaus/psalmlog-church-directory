@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { Smartphone, BookOpen } from 'lucide-react';
-import { getPsalmlogUrl } from '@/lib/constants';
+import { APP_STORE_URL } from '@/lib/constants';
 
 interface PsalmlogCTAProps {
   variant?: 'sidebar' | 'inline' | 'bottom';
-  campaign: string;
+  campaign?: string;
 }
 
-export default function PsalmlogCTA({ variant = 'sidebar', campaign }: PsalmlogCTAProps) {
-  const appUrl = getPsalmlogUrl(campaign, variant);
+export default function PsalmlogCTA({ variant = 'sidebar' }: PsalmlogCTAProps) {
+  const appUrl = APP_STORE_URL;
 
   if (variant === 'inline') {
     return (

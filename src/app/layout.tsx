@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Work_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from "@/lib/constants";
+import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, APP_STORE_URL, PLAY_STORE_URL } from "@/lib/constants";
 
 const workSans = Work_Sans({
   variable: "--font-work-sans",
@@ -50,7 +50,8 @@ function OrganizationSchema() {
     logo: `${SITE_URL}/psalmlog-logo.png`,
     description: SITE_DESCRIPTION,
     sameAs: [
-      "https://apps.apple.com/app/psalmlog",
+      APP_STORE_URL,
+      PLAY_STORE_URL,
     ],
   };
 

@@ -41,8 +41,8 @@ export async function generateMetadata({ params }: CityPageProps): Promise<Metad
   }
 
   const canonicalUrl = `${SITE_URL}/churches/${stateSlug}/${citySlug}`;
-  const title = `Churches in ${cityName}, ${stateInfo.abbr} | ${SITE_NAME}`;
-  const description = `Discover churches in ${cityName}, ${stateInfo.name}. Filter by denomination, worship style. First-time visitor info for every church.`;
+  const title = `Churches in ${cityName}, ${stateInfo.abbr}`;
+  const description = `Find churches in ${cityName}, ${stateInfo.name}. Filter by denomination and worship style.`;
 
   return {
     title,
@@ -165,9 +165,9 @@ async function ChurchList({
   if (result.data.length === 0) {
     return (
       <div className="text-center py-12 bg-[var(--secondary)] rounded-lg">
-        <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">
+        <p className="text-lg font-medium text-[var(--foreground)] mb-2">
           No churches found
-        </h3>
+        </p>
         <p className="text-[var(--muted)]">
           Try adjusting your filters or check back later as we add more churches.
         </p>
