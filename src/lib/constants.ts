@@ -90,6 +90,25 @@ export const US_STATES = [
 // Page size for pagination
 export const DEFAULT_PAGE_SIZE = 20;
 
+// Minimum word count for indexable pages (SEO thin content protection)
+export const MIN_CONTENT_WORDS = 300;
+
+// Helper to count words in content strings
+export function countWords(...texts: (string | null | undefined)[]): number {
+  return texts
+    .filter((text): text is string => typeof text === 'string' && text.length > 0)
+    .join(' ')
+    .trim()
+    .split(/\s+/)
+    .filter(word => word.length > 0)
+    .length;
+}
+
+// Check if content meets minimum threshold for indexing
+export function hasEnoughContent(...texts: (string | null | undefined)[]): boolean {
+  return countWords(...texts) >= MIN_CONTENT_WORDS;
+}
+
 // UTM parameters for Psalmlog attribution
 export const UTM_SOURCE = 'church_finder';
 export const UTM_MEDIUM = 'directory';

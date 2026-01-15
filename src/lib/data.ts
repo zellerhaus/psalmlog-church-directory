@@ -270,10 +270,10 @@ export async function getFeaturedCitiesWithRealCounts(limit: number = 12): Promi
     return [];
   }
 
-  // Get all churches and aggregate by city+state
+  // Get all churches and aggregate by city+state (use state column for full name)
   const { data, error } = await supabase
     .from('churches')
-    .select('city, state_abbr');
+    .select('city, state, state_abbr');
 
   if (error) {
     handleError(error, 'getFeaturedCitiesWithRealCounts');
@@ -281,22 +281,15 @@ export async function getFeaturedCitiesWithRealCounts(limit: number = 12): Promi
   }
   if (!data || data.length === 0) return [];
 
-  // Build a lookup for state abbreviation to state name
-  const stateMap = new Map<string, string>();
-  const { US_STATES } = await import('./constants');
-  for (const state of US_STATES) {
-    stateMap.set(state.abbr, state.name);
-  }
-
   // Count churches per city+state combination
-  const cityCounts = new Map<string, { name: string; state_abbr: string; count: number }>();
-  for (const church of data as { city: string; state_abbr: string }[]) {
+  const cityCounts = new Map<string, { name: string; state: string; state_abbr: string; count: number }>();
+  for (const church of data as { city: string; state: string; state_abbr: string }[]) {
     const key = `${church.city}|${church.state_abbr}`;
     const existing = cityCounts.get(key);
     if (existing) {
       existing.count++;
     } else {
-      cityCounts.set(key, { name: church.city, state_abbr: church.state_abbr, count: 1 });
+      cityCounts.set(key, { name: church.city, state: church.state, state_abbr: church.state_abbr, count: 1 });
     }
   }
 
@@ -306,7 +299,7 @@ export async function getFeaturedCitiesWithRealCounts(limit: number = 12): Promi
       name: city.name,
       state_abbr: city.state_abbr,
       slug: city.name.toLowerCase().replace(/\s+/g, '-'),
-      state: stateMap.get(city.state_abbr) || city.state_abbr,
+      state: city.state,
       church_count: city.count,
     }))
     .sort((a, b) => {
@@ -318,6 +311,36 @@ export async function getFeaturedCitiesWithRealCounts(limit: number = 12): Promi
     .slice(0, limit);
 
   return result;
+}
+
+// Get denomination statistics (count of churches per denomination)
+export async function getDenominationStats(limit: number = 10): Promise<{ denomination: string; count: number }[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('churches')
+    .select('denomination');
+
+  if (error) {
+    handleError(error, 'getDenominationStats');
+    return [];
+  }
+  if (!data || data.length === 0) return [];
+
+  // Count churches per denomination
+  const denomCounts = new Map<string, number>();
+  for (const church of data as { denomination: string | null }[]) {
+    const denom = church.denomination || 'Other';
+    denomCounts.set(denom, (denomCounts.get(denom) || 0) + 1);
+  }
+
+  // Convert to array, sort by count descending, and limit
+  return Array.from(denomCounts.entries())
+    .map(([denomination, count]) => ({ denomination, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
 }
 
 // Get popular states (states with most churches)
@@ -378,8 +401,7 @@ export async function getCitiesWithChurchCounts(stateAbbr: string): Promise<{ na
   // Count churches per city
   const cityCounts = new Map<string, number>();
   for (const church of data as { city: string }[]) {
-    const city = church.city;
-    cityCounts.set(city, (cityCounts.get(city) || 0) + 1);
+    cityCounts.set(church.city, (cityCounts.get(church.city) || 0) + 1);
   }
 
   // Convert to array with slugs and sort by count descending

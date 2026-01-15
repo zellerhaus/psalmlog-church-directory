@@ -7,8 +7,9 @@ import PsalmlogCTA from '@/components/PsalmlogCTA';
 import SearchBox from '@/components/SearchBox';
 import FAQSection from '@/components/FAQSection';
 import LocationStats from '@/components/LocationStats';
+import HeroImage from '@/components/HeroImage';
 import { getChurchCountByState, getCitiesWithChurchCounts, getStateContent } from '@/lib/data';
-import { US_STATES, SITE_NAME, SITE_URL } from '@/lib/constants';
+import { US_STATES, SITE_NAME, SITE_URL, hasEnoughContent } from '@/lib/constants';
 
 interface StatePageProps {
   params: Promise<{ state: string }>;
@@ -29,6 +30,15 @@ export async function generateMetadata({ params }: StatePageProps): Promise<Meta
     return { title: 'State Not Found' };
   }
 
+  // Check if page has enough unique content for indexing
+  let shouldIndex = false;
+  try {
+    const content = await getStateContent(stateInfo.abbr);
+    shouldIndex = hasEnoughContent(content?.overview, content?.visitor_guide, content?.historical_context);
+  } catch {
+    // Database not available, default to noindex for safety
+  }
+
   const canonicalUrl = `${SITE_URL}/churches/${stateSlug}`;
   const title = `Churches in ${stateInfo.name} | ${SITE_NAME}`;
   const description = `Find churches in ${stateInfo.name}. Browse by city, denomination, and worship style. Discover the perfect church community for you.`;
@@ -39,6 +49,8 @@ export async function generateMetadata({ params }: StatePageProps): Promise<Meta
     alternates: {
       canonical: canonicalUrl,
     },
+    // Noindex pages with thin content to avoid SEO penalties
+    ...(shouldIndex ? {} : { robots: { index: false, follow: true } }),
     openGraph: {
       title,
       description,
@@ -47,7 +59,7 @@ export async function generateMetadata({ params }: StatePageProps): Promise<Meta
       siteName: SITE_NAME,
       images: [
         {
-          url: `${SITE_URL}/og/state/${stateSlug}.png`,
+          url: `${SITE_URL}/og/state/${stateSlug}`,
           width: 1200,
           height: 630,
           alt: `Churches in ${stateInfo.name}`,
@@ -58,7 +70,7 @@ export async function generateMetadata({ params }: StatePageProps): Promise<Meta
       card: 'summary_large_image',
       title,
       description,
-      images: [`${SITE_URL}/og/state/${stateSlug}.png`],
+      images: [`${SITE_URL}/og/state/${stateSlug}`],
     },
   };
 }
@@ -128,128 +140,142 @@ export default async function StatePage({ params }: StatePageProps) {
           items={[{ label: stateInfo.name }]}
         />
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-4 font-serif">
-          Churches in {stateInfo.name}
-        </h1>
-
-        {/* AI-generated overview or fallback */}
-        {content?.overview ? (
-          <div className="prose prose-lg max-w-none mb-6">
-            <p className="text-lg text-[var(--muted)] leading-relaxed">
-              {content.overview}
-            </p>
+        {/* Header */}
+        <div className="relative mb-8 -mx-4 md:-mx-8 px-4 md:px-8 py-12 md:py-16 bg-[var(--primary)] text-white overflow-hidden rounded-xl">
+          {/* Background Image with Dark Overlay - uses state-specific image if available */}
+          <div className="absolute inset-0 z-0 select-none">
+            <HeroImage
+              src={`/images/states/${stateSlug}.png`}
+              fallbackSrc="/images/state-hero.png"
+              alt={`${stateInfo.name} landscape`}
+              className="absolute inset-0 w-full h-full object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-black/50" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)] via-[var(--primary)]/80 to-[var(--primary)]/60" />
           </div>
-        ) : (
-          <p className="text-lg text-[var(--muted)] mb-6">
-            {totalChurches > 0
-              ? `Find ${totalChurches.toLocaleString()} churches across ${cities.length} cities in ${stateInfo.name}.`
-              : `Browse churches across ${stateInfo.name}.`}
-          </p>
-        )}
 
-        <SearchBox
-          placeholder={`Search churches in ${stateInfo.name}...`}
-          className="max-w-xl"
-        />
-      </div>
+          <div className="relative z-10 max-w-3xl">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 font-serif text-white shadow-sm">
+              Churches in {stateInfo.name}
+            </h1>
 
-      <div className="grid lg:grid-cols-4 gap-8">
-        {/* Main content */}
-        <div className="lg:col-span-3">
-          {/* Statistics Summary */}
-          {content?.stats && (
-            <LocationStats stats={content.stats} locationName={stateInfo.name} />
-          )}
+            {/* AI-generated overview or fallback */}
+            {content?.overview ? (
+              <div className="prose prose-lg max-w-none mb-6">
+                <p className="text-lg text-gray-100 leading-relaxed shadow-sm">
+                  {content.overview}
+                </p>
+              </div>
+            ) : (
+              <p className="text-lg text-gray-100 mb-6 shadow-sm">
+                {totalChurches > 0
+                  ? `Find ${totalChurches.toLocaleString()} churches across ${cities.length} cities in ${stateInfo.name}.`
+                  : `Browse churches across ${stateInfo.name}.`}
+              </p>
+            )}
 
-          {/* City Grid */}
-          {cities.length > 0 ? (
-            <>
-              <h2 className="text-xl font-semibold mb-4">Cities in {stateInfo.name}</h2>
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {cities.map((city) => (
-                  <Link
-                    key={city.slug}
-                    href={`/churches/${stateSlug}/${city.slug}`}
-                    className="card p-4 hover:border-[var(--primary)]"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 bg-[var(--secondary)] rounded-lg flex items-center justify-center">
-                          <MapPin className="w-5 h-5 text-[var(--primary)]" />
+            <SearchBox
+              placeholder={`Search churches in ${stateInfo.name}...`}
+              className="max-w-xl shadow-lg"
+            />
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Main content */}
+          <div className="lg:col-span-3">
+            {/* Statistics Summary */}
+            {content?.stats && (
+              <LocationStats stats={content.stats} locationName={stateInfo.name} />
+            )}
+
+            {/* City Grid */}
+            {cities.length > 0 ? (
+              <>
+                <h2 className="text-xl font-semibold mb-4">Cities in {stateInfo.name}</h2>
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {cities.map((city) => (
+                    <Link
+                      key={city.slug}
+                      href={`/churches/${stateSlug}/${city.slug}`}
+                      className="card p-4 hover:border-[var(--primary)]"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-[var(--secondary)] rounded-lg flex items-center justify-center">
+                            <MapPin className="w-5 h-5 text-[var(--primary)]" />
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-[var(--foreground)]">{city.name}</h3>
+                          <p className="text-sm text-[var(--primary)]">
+                            {city.church_count} church{city.church_count !== 1 ? 'es' : ''}
+                          </p>
                         </div>
                       </div>
-                      <div>
-                        <h3 className="font-medium text-[var(--foreground)]">{city.name}</h3>
-                        <p className="text-sm text-[var(--primary)]">
-                          {city.church_count} church{city.church_count !== 1 ? 'es' : ''}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12 bg-[var(--secondary)] rounded-lg">
+                <MapPin className="w-12 h-12 text-[var(--muted)] mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">
+                  No cities found yet
+                </h3>
+                <p className="text-[var(--muted)] max-w-md mx-auto">
+                  We&apos;re still building our database for {stateInfo.name}.
+                  Check back soon or try searching for a specific city.
+                </p>
               </div>
-            </>
-          ) : (
-            <div className="text-center py-12 bg-[var(--secondary)] rounded-lg">
-              <MapPin className="w-12 h-12 text-[var(--muted)] mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">
-                No cities found yet
-              </h3>
-              <p className="text-[var(--muted)] max-w-md mx-auto">
-                We&apos;re still building our database for {stateInfo.name}.
-                Check back soon or try searching for a specific city.
-              </p>
-            </div>
-          )}
+            )}
 
-          {/* Visitor Guide Section */}
-          {content?.visitor_guide && (
-            <section className="mt-12">
-              <h2 className="text-2xl font-bold mb-4 font-serif text-[var(--foreground)]">
-                Visiting Churches in {stateInfo.name}
-              </h2>
-              <div className="prose max-w-none text-[var(--muted)]">
-                {content.visitor_guide.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="mb-4 leading-relaxed">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </section>
-          )}
+            {/* Visitor Guide Section */}
+            {content?.visitor_guide && (
+              <section className="mt-12">
+                <h2 className="text-2xl font-bold mb-4 font-serif text-[var(--foreground)]">
+                  Visiting Churches in {stateInfo.name}
+                </h2>
+                <div className="prose max-w-none text-[var(--muted)]">
+                  {content.visitor_guide.split('\n\n').map((paragraph, index) => (
+                    <p key={index} className="mb-4 leading-relaxed">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {/* Historical Context Section */}
-          {content?.historical_context && (
-            <section className="mt-12">
-              <h2 className="text-2xl font-bold mb-4 font-serif text-[var(--foreground)]">
-                Church History in {stateInfo.name}
-              </h2>
-              <div className="prose max-w-none text-[var(--muted)]">
-                {content.historical_context.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="mb-4 leading-relaxed">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </section>
-          )}
+            {/* Historical Context Section */}
+            {content?.historical_context && (
+              <section className="mt-12">
+                <h2 className="text-2xl font-bold mb-4 font-serif text-[var(--foreground)]">
+                  Church History in {stateInfo.name}
+                </h2>
+                <div className="prose max-w-none text-[var(--muted)]">
+                  {content.historical_context.split('\n\n').map((paragraph, index) => (
+                    <p key={index} className="mb-4 leading-relaxed">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {/* FAQ Section with Schema Markup */}
-          {content?.faqs && content.faqs.length > 0 && (
-            <FAQSection
-              faqs={content.faqs}
-              title={`Frequently Asked Questions About Churches in ${stateInfo.name}`}
-            />
-          )}
+            {/* FAQ Section with Schema Markup */}
+            {content?.faqs && content.faqs.length > 0 && (
+              <FAQSection
+                faqs={content.faqs}
+                title={`Frequently Asked Questions About Churches in ${stateInfo.name}`}
+              />
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <PsalmlogCTA variant="sidebar" campaign="state_page" />
+          </div>
         </div>
-
-        {/* Sidebar */}
-        <div className="lg:col-span-1">
-          <PsalmlogCTA variant="sidebar" campaign="state_page" />
-        </div>
-      </div>
 
         {/* Bottom CTA */}
         <div className="mt-12">

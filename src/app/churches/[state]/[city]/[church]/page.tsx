@@ -15,7 +15,7 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
 import ChurchClientSection from '@/components/ChurchClientSection';
 import RelatedChurches from '@/components/RelatedChurches';
-import { US_STATES } from '@/lib/constants';
+import { US_STATES, SITE_URL, hasEnoughContent } from '@/lib/constants';
 import { getChurchBySlug, getRelatedChurches } from '@/lib/data';
 import type { Church, ServiceTime } from '@/types/database';
 
@@ -51,23 +51,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const canonicalUrl = `https://psalmlog.com/churches/${stateSlug}/${citySlug}/${churchSlug}`;
 
+  // Check if page has enough unique content for indexing
+  const shouldIndex = hasEnoughContent(church.ai_description, church.ai_what_to_expect);
+
   return {
     title,
     description,
     alternates: {
       canonical: canonicalUrl,
     },
+    // Noindex pages with thin content to avoid SEO penalties
+    ...(shouldIndex ? {} : { robots: { index: false, follow: true } }),
     openGraph: {
       title,
       description,
       url: canonicalUrl,
       type: 'website',
       siteName: 'Psalmlog Church Finder',
+      images: [
+        {
+          url: `${SITE_URL}/og/church/${stateSlug}/${citySlug}/${churchSlug}`,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title,
       description,
+      images: [`${SITE_URL}/og/church/${stateSlug}/${citySlug}/${churchSlug}`],
     },
   };
 }
@@ -322,33 +336,33 @@ export default async function ChurchDetailPage({ params }: PageProps) {
             {(church.has_kids_ministry ||
               church.has_youth_group ||
               church.has_small_groups) && (
-              <div className="card p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[var(--muted)]" />
-                  Programs & Ministries
-                </h2>
-                <div className="grid sm:grid-cols-3 gap-4">
-                  {church.has_kids_ministry && (
-                    <div className="p-4 bg-emerald-50 rounded-lg text-center">
-                      <Users className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
-                      <p className="font-medium text-emerald-900">Kids Ministry</p>
-                    </div>
-                  )}
-                  {church.has_youth_group && (
-                    <div className="p-4 bg-blue-50 rounded-lg text-center">
-                      <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                      <p className="font-medium text-blue-900">Youth Group</p>
-                    </div>
-                  )}
-                  {church.has_small_groups && (
-                    <div className="p-4 bg-purple-50 rounded-lg text-center">
-                      <Users className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-                      <p className="font-medium text-purple-900">Small Groups</p>
-                    </div>
-                  )}
+                <div className="card p-6">
+                  <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-[var(--muted)]" />
+                    Programs & Ministries
+                  </h2>
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    {church.has_kids_ministry && (
+                      <div className="p-4 bg-emerald-50 rounded-lg text-center">
+                        <Users className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
+                        <p className="font-medium text-emerald-900">Kids Ministry</p>
+                      </div>
+                    )}
+                    {church.has_youth_group && (
+                      <div className="p-4 bg-blue-50 rounded-lg text-center">
+                        <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                        <p className="font-medium text-blue-900">Youth Group</p>
+                      </div>
+                    )}
+                    {church.has_small_groups && (
+                      <div className="p-4 bg-purple-50 rounded-lg text-center">
+                        <Users className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+                        <p className="font-medium text-purple-900">Small Groups</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* About */}
             {church.ai_description && (

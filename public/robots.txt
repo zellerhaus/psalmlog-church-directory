@@ -12,5 +12,5 @@ Disallow: /admin/
 # Block search results with parameters to avoid duplicate content
 Disallow: /churches/search?*
 
-# Sitemap location
-Sitemap: https://psalmlog.com/churches/sitemap.xml
+# Sitemap index (contains references to all chunked sitemaps)
+Sitemap: https://psalmlog.com/sitemap.xml

@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { Suspense } from 'react';
+import { Fragment, Suspense } from 'react';
 import Link from 'next/link';
 import { Search } from 'lucide-react';
 import SearchBox from '@/components/SearchBox';
@@ -118,9 +118,8 @@ async function SearchResults({
 
       <div className="grid gap-4">
         {result.data.map((church, index) => (
-          <>
+          <Fragment key={church.id}>
             <ChurchCard
-              key={church.id}
               church={church}
               stateSlug={getStateSlug(church.state_abbr)}
               citySlug={getCitySlug(church.city)}
@@ -129,7 +128,7 @@ async function SearchResults({
             {index === 4 && result.data.length > 5 && (
               <PsalmlogCTA variant="inline" campaign="search_results" />
             )}
-          </>
+          </Fragment>
         ))}
       </div>
 

@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Menu, X, Search, ChevronDown } from 'lucide-react';
 import { PSALMLOG_URLS } from '@/lib/constants';
 
@@ -12,6 +13,26 @@ interface HeaderProps {
 
 export default function Header({ popularStates = [] }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchOpen]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/churches/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchOpen(false);
+      setSearchQuery('');
+      setMobileMenuOpen(false);
+    }
+  };
 
   return (
     <header className="bg-white border-b border-[var(--border)] sticky top-0 z-50">
@@ -73,13 +94,46 @@ export default function Header({ popularStates = [] }: HeaderProps) {
 
           {/* Search and CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/churches#search"
-              className="flex items-center gap-2 text-gray-500 hover:text-gray-700"
-            >
-              <Search className="w-5 h-5" />
-              <span className="text-sm">Search</span>
-            </Link>
+            <div className="relative flex items-center">
+              {searchOpen ? (
+                <form onSubmit={handleSearch} className="flex items-center">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="City or zip code..."
+                    className="w-64 py-2 px-3 pr-8 text-sm border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] outline-none transition-all"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setSearchOpen(false);
+                        setSearchQuery('');
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchOpen(false);
+                      setSearchQuery('');
+                    }}
+                    className="absolute right-2 text-gray-400 hover:text-gray-600"
+                    aria-label="Close search"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </form>
+              ) : (
+                <button
+                  onClick={() => setSearchOpen(true)}
+                  className="flex items-center gap-2 text-gray-500 hover:text-gray-700"
+                  aria-label="Open search"
+                >
+                  <Search className="w-5 h-5" />
+                  <span className="text-sm">Search</span>
+                </button>
+              )}
+            </div>
             <Link
               href={PSALMLOG_URLS.header}
               className="btn-primary text-sm"
@@ -122,13 +176,22 @@ export default function Header({ popularStates = [] }: HeaderProps) {
               >
                 Browse by State
               </Link>
-              <Link
-                href="/churches#search"
-                className="text-gray-600 hover:text-gray-900 font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Search
-              </Link>
+              <form onSubmit={handleSearch} className="flex gap-2">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="City or zip code..."
+                  className="flex-1 py-2 px-3 text-sm border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] outline-none"
+                />
+                <button
+                  type="submit"
+                  className="btn-primary py-2 px-4 text-sm"
+                  aria-label="Search"
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+              </form>
               <Link
                 href={PSALMLOG_URLS.mobileMenu}
                 className="btn-primary text-sm w-fit"
