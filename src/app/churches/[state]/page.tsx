@@ -52,6 +52,7 @@ export default async function StatePage({ params }: StatePageProps) {
   // Get real church counts from the churches table
   let totalChurches = 0;
   let cities: { slug: string; name: string; church_count: number }[] = [];
+  let content: Awaited<ReturnType<typeof getStateContent>> = null;
 
   try {
     // Get total church count for the state
@@ -59,12 +60,12 @@ export default async function StatePage({ params }: StatePageProps) {
 
     // Get cities with real church counts (aggregated from churches)
     cities = await getCitiesWithChurchCounts(stateInfo.abbr);
+
+    // Get pre-generated content for this state
+    content = await getStateContent(stateInfo.abbr);
   } catch {
     // Database not connected, use empty state
   }
-
-  // Get pre-generated content for this state
-  const content = await getStateContent(stateInfo.abbr);
 
   return (
     <div className="container-page py-8">

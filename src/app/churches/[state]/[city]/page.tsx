@@ -140,6 +140,7 @@ export default async function CityPage({ params, searchParams }: CityPageProps) 
 
   let cityData = null;
   let totalChurchCount = 0;
+  let content: Awaited<ReturnType<typeof getCityContent>> = null;
 
   try {
     cityData = await getCityBySlug(stateInfo.abbr, citySlug);
@@ -150,12 +151,12 @@ export default async function CityPage({ params, searchParams }: CityPageProps) 
     // Get real church count by querying the churches table (no filters, page 1)
     const countResult = await getChurchesByCity(stateInfo.abbr, cityName, {}, 1, 1);
     totalChurchCount = countResult.total;
+
+    // Get pre-generated content for this city
+    content = await getCityContent(stateInfo.abbr, citySlug);
   } catch {
     // Database not connected
   }
-
-  // Get pre-generated content for this city
-  const content = await getCityContent(stateInfo.abbr, citySlug);
 
   return (
     <div className="container-page py-8">
