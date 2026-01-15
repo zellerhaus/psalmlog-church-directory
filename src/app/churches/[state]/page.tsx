@@ -8,7 +8,7 @@ import SearchBox from '@/components/SearchBox';
 import FAQSection from '@/components/FAQSection';
 import LocationStats from '@/components/LocationStats';
 import { getChurchCountByState, getCitiesWithChurchCounts, getStateContent } from '@/lib/data';
-import { US_STATES, SITE_NAME } from '@/lib/constants';
+import { US_STATES, SITE_NAME, SITE_URL } from '@/lib/constants';
 
 interface StatePageProps {
   params: Promise<{ state: string }>;
@@ -29,14 +29,67 @@ export async function generateMetadata({ params }: StatePageProps): Promise<Meta
     return { title: 'State Not Found' };
   }
 
+  const canonicalUrl = `${SITE_URL}/churches/${stateSlug}`;
+  const title = `Churches in ${stateInfo.name} | ${SITE_NAME}`;
+  const description = `Find churches in ${stateInfo.name}. Browse by city, denomination, and worship style. Discover the perfect church community for you.`;
+
   return {
-    title: `Churches in ${stateInfo.name} | ${SITE_NAME}`,
-    description: `Find churches in ${stateInfo.name}. Browse by city, denomination, and worship style.`,
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
-      title: `Churches in ${stateInfo.name} | ${SITE_NAME}`,
-      description: `Find churches in ${stateInfo.name}. Browse by city, denomination, and worship style.`,
+      title,
+      description,
+      url: canonicalUrl,
+      type: 'website',
+      siteName: SITE_NAME,
+      images: [
+        {
+          url: `${SITE_URL}/og/state/${stateSlug}.png`,
+          width: 1200,
+          height: 630,
+          alt: `Churches in ${stateInfo.name}`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${SITE_URL}/og/state/${stateSlug}.png`],
     },
   };
+}
+
+// BreadcrumbList Schema
+function BreadcrumbSchema({ stateInfo, stateSlug }: { stateInfo: typeof US_STATES[number]; stateSlug: string }) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Churches',
+        item: `${SITE_URL}/churches`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: stateInfo.name,
+        item: `${SITE_URL}/churches/${stateSlug}`,
+      },
+    ],
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
 }
 
 export default async function StatePage({ params }: StatePageProps) {
@@ -68,10 +121,12 @@ export default async function StatePage({ params }: StatePageProps) {
   }
 
   return (
-    <div className="container-page py-8">
-      <Breadcrumbs
-        items={[{ label: stateInfo.name }]}
-      />
+    <>
+      <BreadcrumbSchema stateInfo={stateInfo} stateSlug={stateSlug} />
+      <div className="container-page py-8">
+        <Breadcrumbs
+          items={[{ label: stateInfo.name }]}
+        />
 
       {/* Header */}
       <div className="mb-8">
@@ -196,10 +251,11 @@ export default async function StatePage({ params }: StatePageProps) {
         </div>
       </div>
 
-      {/* Bottom CTA */}
-      <div className="mt-12">
-        <PsalmlogCTA variant="inline" campaign="state_page" />
+        {/* Bottom CTA */}
+        <div className="mt-12">
+          <PsalmlogCTA variant="inline" campaign="state_page" />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -14,8 +14,9 @@ import {
 import Breadcrumbs from '@/components/Breadcrumbs';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
 import ChurchClientSection from '@/components/ChurchClientSection';
+import RelatedChurches from '@/components/RelatedChurches';
 import { US_STATES } from '@/lib/constants';
-import { getChurchBySlug } from '@/lib/data';
+import { getChurchBySlug, getRelatedChurches } from '@/lib/data';
 import type { Church, ServiceTime } from '@/types/database';
 
 interface PageProps {
@@ -171,6 +172,9 @@ export default async function ChurchDetailPage({ params }: PageProps) {
   if (!church) {
     notFound();
   }
+
+  // Fetch related churches for internal linking
+  const relatedChurches = await getRelatedChurches(stateInfo.abbr, church.city, church.id, 4);
 
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${church.name} ${church.address} ${church.city} ${church.state_abbr}`
@@ -408,6 +412,9 @@ export default async function ChurchDetailPage({ params }: PageProps) {
                 )}
               </div>
             </div>
+
+            {/* Related Churches for internal linking */}
+            <RelatedChurches churches={relatedChurches} currentCity={church.city} />
           </div>
         </div>
 

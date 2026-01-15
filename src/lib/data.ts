@@ -427,6 +427,56 @@ export async function getNearbyChurches(
   return (data as Church[]) || [];
 }
 
+// Get related churches (same city, different church OR nearby cities)
+export async function getRelatedChurches(
+  stateAbbr: string,
+  city: string,
+  currentChurchId: string,
+  limit: number = 4
+): Promise<Church[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  // First try to get other churches in the same city
+  const { data: sameCityChurches, error: sameCityError } = await supabase
+    .from('churches')
+    .select('*')
+    .eq('state_abbr', stateAbbr)
+    .ilike('city', city)
+    .neq('id', currentChurchId)
+    .limit(limit);
+
+  if (sameCityError) {
+    handleError(sameCityError, 'getRelatedChurches');
+    return [];
+  }
+
+  // If we have enough from the same city, return those
+  if (sameCityChurches && sameCityChurches.length >= limit) {
+    return sameCityChurches;
+  }
+
+  // Otherwise, get more from the same state to fill the gap
+  const remaining = limit - (sameCityChurches?.length || 0);
+  const existingIds = sameCityChurches?.map((c: Church) => c.id) || [];
+  const excludeIds = [currentChurchId, ...existingIds];
+
+  const { data: stateChurches, error: stateError } = await supabase
+    .from('churches')
+    .select('*')
+    .eq('state_abbr', stateAbbr)
+    .not('id', 'in', `(${excludeIds.join(',')})`)
+    .limit(remaining);
+
+  if (stateError) {
+    handleError(stateError, 'getRelatedChurches');
+    return sameCityChurches || [];
+  }
+
+  return [...(sameCityChurches || []), ...(stateChurches || [])];
+}
+
 // ============================================================================
 // LOCATION CONTENT (Pre-generated state/city page content)
 // ============================================================================
