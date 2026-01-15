@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import { X, Download, Check, Loader2 } from 'lucide-react';
 
 interface EmailCaptureModalProps {
@@ -8,10 +8,52 @@ interface EmailCaptureModalProps {
   onClose: () => void;
 }
 
+interface UtmParams {
+  utm_source: string;
+  utm_medium: string;
+  utm_campaign: string;
+  utm_term: string;
+  utm_content: string;
+}
+
+function getUtmParams(): UtmParams {
+  if (typeof window === 'undefined') {
+    return {
+      utm_source: '',
+      utm_medium: '',
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
+    };
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  return {
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_term: params.get('utm_term') || '',
+    utm_content: params.get('utm_content') || '',
+  };
+}
+
 export default function EmailCaptureModal({ isOpen, onClose }: EmailCaptureModalProps) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [utmParams, setUtmParams] = useState<UtmParams>({
+    utm_source: '',
+    utm_medium: '',
+    utm_campaign: '',
+    utm_term: '',
+    utm_content: '',
+  });
+  const [currentPath, setCurrentPath] = useState('');
+
+  useEffect(() => {
+    setUtmParams(getUtmParams());
+    setCurrentPath(window.location.pathname);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +71,12 @@ export default function EmailCaptureModal({ isOpen, onClose }: EmailCaptureModal
       const response = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'church_directory' }),
+        body: JSON.stringify({
+          email,
+          source: 'church_directory',
+          page_url: currentPath,
+          ...utmParams,
+        }),
       });
 
       if (!response.ok) {
@@ -105,6 +152,14 @@ export default function EmailCaptureModal({ isOpen, onClose }: EmailCaptureModal
 
               {/* Form */}
               <form onSubmit={handleSubmit}>
+                {/* Hidden fields for UTM tracking */}
+                <input type="hidden" name="utm_source" value={utmParams.utm_source} />
+                <input type="hidden" name="utm_medium" value={utmParams.utm_medium} />
+                <input type="hidden" name="utm_campaign" value={utmParams.utm_campaign} />
+                <input type="hidden" name="utm_term" value={utmParams.utm_term} />
+                <input type="hidden" name="utm_content" value={utmParams.utm_content} />
+                <input type="hidden" name="page_url" value={currentPath} />
+
                 <div className="mb-4">
                   <label htmlFor="email" className="sr-only">Email address</label>
                   <input
