@@ -49,7 +49,7 @@ export default async function ChurchesHomePage() {
         {/* Background Image with Dark Overlay */}
         <div className="absolute inset-0 z-0 select-none overflow-hidden h-[600px] md:h-full">
           <img
-            src="/images/home-hero.png"
+            src="/churches/images/home-hero.png"
             alt="Church interior"
             className="absolute inset-0 w-full h-full object-cover object-center"
           />

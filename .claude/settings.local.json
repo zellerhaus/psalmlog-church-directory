@@ -19,7 +19,8 @@
       "Bash(npm run enrich:*)",
       "Bash(git diff:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd dynamic header search and fix React key warning\n\n- Add expandable search bar to desktop header navigation\n- Add inline search form to mobile menu\n- Search works from any page, navigates to /churches/search\n- Fix React key prop warning in search results by using Fragment\n\nAlso includes: SEO improvements, OG images, sitemap restructuring,\nhero images, FAQ section, and content quality checks.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd dynamic header search and fix React key warning\n\n- Add expandable search bar to desktop header navigation\n- Add inline search form to mobile menu\n- Search works from any page, navigates to /churches/search\n- Fix React key prop warning in search results by using Fragment\n\nAlso includes: SEO improvements, OG images, sitemap restructuring,\nhero images, FAQ section, and content quality checks.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)"
     ]
   }
 }

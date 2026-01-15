@@ -145,8 +145,8 @@ export default async function StatePage({ params }: StatePageProps) {
           {/* Background Image with Dark Overlay - uses state-specific image if available */}
           <div className="absolute inset-0 z-0 select-none">
             <HeroImage
-              src={`/images/states/${stateSlug}.png`}
-              fallbackSrc="/images/state-hero.png"
+              src={`/churches/images/states/${stateSlug}.png`}
+              fallbackSrc="/churches/images/state-hero.png"
               alt={`${stateInfo.name} landscape`}
               className="absolute inset-0 w-full h-full object-cover object-center"
             />

@@ -259,7 +259,7 @@ export default async function CityPage({ params, searchParams }: CityPageProps) 
           {/* Background Image with Dark Overlay */}
           <div className="absolute inset-0 z-0 select-none">
             <img
-              src="/images/city-hero.png"
+              src="/churches/images/city-hero.png"
               alt="Cityscape"
               className="absolute inset-0 w-full h-full object-cover object-center"
             />
