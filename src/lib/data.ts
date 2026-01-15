@@ -3,6 +3,12 @@ import type { Church, City, State, ChurchFilters, PaginatedResult } from '@/type
 import type { StateContent, CityContent } from '@/types/content';
 import { DEFAULT_PAGE_SIZE } from './constants';
 
+// Helper to safely handle Supabase errors during build
+function handleError(error: unknown, context: string): void {
+  // Log error but don't throw - allows graceful degradation during build
+  console.error(`Database error in ${context}:`, error);
+}
+
 // Get all states with church counts
 export async function getStates(): Promise<State[]> {
   if (!isSupabaseConfigured() || !supabase) {
@@ -14,7 +20,10 @@ export async function getStates(): Promise<State[]> {
     .select('*')
     .order('name');
 
-  if (error) throw error;
+  if (error) {
+    handleError(error, 'getStates');
+    return [];
+  }
   return data || [];
 }
 
@@ -30,7 +39,10 @@ export async function getStateBySlug(slug: string): Promise<State | null> {
     .eq('slug', slug)
     .single();
 
-  if (error && error.code !== 'PGRST116') throw error;
+  if (error && error.code !== 'PGRST116') {
+    handleError(error, 'getStateBySlug');
+    return null;
+  }
   return data;
 }
 
@@ -46,7 +58,10 @@ export async function getCitiesByState(stateAbbr: string): Promise<City[]> {
     .eq('state_abbr', stateAbbr)
     .order('name');
 
-  if (error) throw error;
+  if (error) {
+    handleError(error, 'getCitiesByState');
+    return [];
+  }
   return data || [];
 }
 
@@ -63,7 +78,10 @@ export async function getCityBySlug(stateAbbr: string, citySlug: string): Promis
     .eq('slug', citySlug)
     .single();
 
-  if (error && error.code !== 'PGRST116') throw error;
+  if (error && error.code !== 'PGRST116') {
+    handleError(error, 'getCityBySlug');
+    return null;
+  }
   return data;
 }
 
@@ -109,7 +127,10 @@ export async function getChurchesByCity(
 
   const { data, error, count } = await query;
 
-  if (error) throw error;
+  if (error) {
+    handleError(error, 'getChurchesByCity');
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
 
   return {
     data: data || [],
@@ -137,7 +158,10 @@ export async function getChurchBySlug(
     .eq('slug', churchSlug)
     .single();
 
-  if (error && error.code !== 'PGRST116') throw error;
+  if (error && error.code !== 'PGRST116') {
+    handleError(error, 'getChurchBySlug');
+    return null;
+  }
   return data;
 }
 
@@ -190,7 +214,10 @@ export async function searchChurches(
 
   const { data, error, count } = await dbQuery;
 
-  if (error) throw error;
+  if (error) {
+    handleError(error, 'searchChurches');
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
 
   return {
     data: data || [],
@@ -211,7 +238,10 @@ export async function getTotalChurchCount(): Promise<number> {
     .from('churches')
     .select('*', { count: 'exact', head: true });
 
-  if (error) throw error;
+  if (error) {
+    handleError(error, 'getTotalChurchCount');
+    return 0;
+  }
   return count || 0;
 }
 
@@ -227,7 +257,10 @@ export async function getFeaturedCities(limit: number = 12): Promise<City[]> {
     .order('church_count', { ascending: false })
     .limit(limit);
 
-  if (error) throw error;
+  if (error) {
+    handleError(error, 'getFeaturedCities');
+    return [];
+  }
   return data || [];
 }
 
@@ -242,7 +275,10 @@ export async function getFeaturedCitiesWithRealCounts(limit: number = 12): Promi
     .from('churches')
     .select('city, state_abbr');
 
-  if (error) throw error;
+  if (error) {
+    handleError(error, 'getFeaturedCitiesWithRealCounts');
+    return [];
+  }
   if (!data || data.length === 0) return [];
 
   // Build a lookup for state abbreviation to state name
@@ -296,7 +332,10 @@ export async function getPopularStates(limit: number = 4): Promise<State[]> {
     .order('church_count', { ascending: false })
     .limit(limit);
 
-  if (error) throw error;
+  if (error) {
+    handleError(error, 'getPopularStates');
+    return [];
+  }
   return data || [];
 }
 
@@ -311,7 +350,10 @@ export async function getChurchCountByState(stateAbbr: string): Promise<number> 
     .select('*', { count: 'exact', head: true })
     .eq('state_abbr', stateAbbr);
 
-  if (error) throw error;
+  if (error) {
+    handleError(error, 'getChurchCountByState');
+    return 0;
+  }
   return count || 0;
 }
 
@@ -327,7 +369,10 @@ export async function getCitiesWithChurchCounts(stateAbbr: string): Promise<{ na
     .select('city')
     .eq('state_abbr', stateAbbr);
 
-  if (error) throw error;
+  if (error) {
+    handleError(error, 'getCitiesWithChurchCounts');
+    return [];
+  }
   if (!data || data.length === 0) return [];
 
   // Count churches per city
@@ -375,7 +420,10 @@ export async function getNearbyChurches(
     result_limit: limit,
   } as never);
 
-  if (error) throw error;
+  if (error) {
+    handleError(error, 'getNearbyChurches');
+    return [];
+  }
   return (data as Church[]) || [];
 }
 
@@ -397,7 +445,7 @@ export async function getStateContent(stateAbbr: string): Promise<StateContent |
 
   // PGRST116 = not found, which is not an error for us
   if (error && error.code !== 'PGRST116') {
-    console.error('Error fetching state content:', error);
+    handleError(error, 'getStateContent');
     return null;
   }
 
@@ -422,7 +470,7 @@ export async function getCityContent(
 
   // PGRST116 = not found, which is not an error for us
   if (error && error.code !== 'PGRST116') {
-    console.error('Error fetching city content:', error);
+    handleError(error, 'getCityContent');
     return null;
   }
 
