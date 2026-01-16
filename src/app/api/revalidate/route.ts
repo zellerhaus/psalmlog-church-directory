@@ -1,8 +1,19 @@
-import { revalidateTag, revalidatePath } from 'next/cache';
+import { revalidateTag as nextRevalidateTag, revalidatePath as nextRevalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Secret token for cache revalidation - set this in your environment variables
 const REVALIDATE_SECRET = process.env.REVALIDATE_SECRET;
+
+// Wrapper for revalidateTag that handles Next.js 16+ API
+// The second argument is a cache profile (string or { expire?: number })
+function revalidateTag(tag: string) {
+  return nextRevalidateTag(tag, { expire: 0 });
+}
+
+// Wrapper for revalidatePath that handles Next.js 16+ API
+function revalidatePath(path: string) {
+  return nextRevalidatePath(path, 'page');
+}
 
 /**
  * Cache Revalidation API
