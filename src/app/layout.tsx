@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Work_Sans, Playfair_Display } from "next/font/google";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, APP_STORE_URL, PLAY_STORE_URL } from "@/lib/constants";
 
@@ -136,6 +138,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </noscript>
         {/* End Google Tag Manager */}
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
