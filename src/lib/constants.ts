@@ -113,6 +113,7 @@ export function hasEnoughContent(..._texts: (string | null | undefined)[]): bool
 // App store URLs
 export const APP_STORE_URL = 'https://apps.apple.com/us/app/psalmlog-bible-guidance/id6743382929';
 export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.psalmlog';
+export const PSALMLOG_LANDING_URL = 'https://psalmlog.com/get-started';
 
 // Site metadata
 export const SITE_NAME = 'Psalmlog Church Finder';
@@ -123,4 +124,5 @@ export const SITE_URL = 'https://psalmlog.com';
 export const PSALMLOG_URLS = {
   appStore: APP_STORE_URL,
   playStore: PLAY_STORE_URL,
+  landing: PSALMLOG_LANDING_URL,
 } as const;

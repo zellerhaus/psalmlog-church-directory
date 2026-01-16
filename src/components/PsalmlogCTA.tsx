@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { Smartphone, BookOpen } from 'lucide-react';
-import { APP_STORE_URL } from '@/lib/constants';
+import { ArrowRight, BookOpen } from 'lucide-react';
+import { PSALMLOG_LANDING_URL } from '@/lib/constants';
 
 interface PsalmlogCTAProps {
   variant?: 'sidebar' | 'inline' | 'bottom';
@@ -8,7 +8,7 @@ interface PsalmlogCTAProps {
 }
 
 export default function PsalmlogCTA({ variant = 'sidebar' }: PsalmlogCTAProps) {
-  const appUrl = APP_STORE_URL;
+  const landingUrl = PSALMLOG_LANDING_URL;
 
   if (variant === 'inline') {
     return (
@@ -27,13 +27,13 @@ export default function PsalmlogCTA({ variant = 'sidebar' }: PsalmlogCTAProps) {
               Get daily scripture-based guidance for life&apos;s big questions with the free Psalmlog app.
             </p>
             <Link
-              href={appUrl}
+              href={landingUrl}
               className="btn-primary text-sm"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Smartphone className="w-4 h-4 mr-2" />
-              Download Free App
+              Try Psalmlog
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
           </div>
         </div>
@@ -56,13 +56,13 @@ export default function PsalmlogCTA({ variant = 'sidebar' }: PsalmlogCTAProps) {
             Join thousands of believers growing deeper in their faith.
           </p>
           <Link
-            href={appUrl}
+            href={landingUrl}
             className="inline-flex items-center justify-center px-6 py-3 bg-white text-[var(--primary)] font-semibold rounded-lg hover:bg-gray-100 transition-colors"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Smartphone className="w-5 h-5 mr-2" />
-            Get Psalmlog Free
+            Try Psalmlog
+            <ArrowRight className="w-5 h-5 ml-2" />
           </Link>
         </div>
       </div>
@@ -83,13 +83,13 @@ export default function PsalmlogCTA({ variant = 'sidebar' }: PsalmlogCTAProps) {
           Get daily biblical guidance with the free Psalmlog app.
         </p>
         <Link
-          href={appUrl}
+          href={landingUrl}
           className="btn-primary w-full text-sm"
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Smartphone className="w-4 h-4 mr-2" />
-          Download Free
+          Try Psalmlog
+          <ArrowRight className="w-4 h-4 ml-2" />
         </Link>
       </div>
     </div>
