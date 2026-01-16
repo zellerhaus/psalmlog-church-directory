@@ -16,7 +16,7 @@ export async function GET(
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
-    return new ImageResponse(
+    const response = new ImageResponse(
         (
             <div
                 style={{
@@ -117,4 +117,9 @@ export async function GET(
             height: 630,
         }
     );
+
+    // Cache for 7 days - city content is static
+    response.headers.set('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
+
+    return response;
 }

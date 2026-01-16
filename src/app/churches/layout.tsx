@@ -17,7 +17,7 @@ export default async function ChurchesLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden">
+    <div className="min-h-screen flex flex-col overflow-x-hidden" suppressHydrationWarning>
       <Header popularStates={popularStates} />
       <main className="flex-1">
         {children}

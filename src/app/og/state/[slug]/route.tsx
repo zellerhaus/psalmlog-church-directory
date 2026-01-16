@@ -11,7 +11,7 @@ export async function GET(
     const state = US_STATES.find((s) => s.slug === slug);
     const stateName = state ? state.name : 'US Churches';
 
-    return new ImageResponse(
+    const response = new ImageResponse(
         (
             <div
                 style={{
@@ -109,4 +109,9 @@ export async function GET(
             height: 630,
         }
     );
+
+    // Cache for 7 days - state content is static
+    response.headers.set('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
+
+    return response;
 }

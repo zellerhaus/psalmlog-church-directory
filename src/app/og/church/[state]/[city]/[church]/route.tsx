@@ -28,7 +28,7 @@ export async function GET(
         }
     }
 
-    return new ImageResponse(
+    const response = new ImageResponse(
         (
             <div
                 style={{
@@ -145,4 +145,9 @@ export async function GET(
             height: 630,
         }
     );
+
+    // Add cache headers to prevent repeated database hits from social media bots
+    response.headers.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+
+    return response;
 }

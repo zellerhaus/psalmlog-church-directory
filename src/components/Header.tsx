@@ -95,52 +95,54 @@ export default function Header({ popularStates = [] }: HeaderProps) {
           {/* Search and CTA */}
           <div className="hidden md:flex items-center gap-4">
             <div className="relative flex items-center">
-              {searchOpen ? (
-                <form onSubmit={handleSearch} className="flex items-center">
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="City or zip code..."
-                    className="w-64 py-2 px-3 pr-8 text-sm border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] outline-none transition-all"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape') {
-                        setSearchOpen(false);
-                        setSearchQuery('');
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
+              {/* Search form - hidden by default, shown when searchOpen */}
+              <form
+                onSubmit={handleSearch}
+                className={`flex items-center ${searchOpen ? '' : 'hidden'}`}
+              >
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="City or zip code..."
+                  className="w-64 py-2 px-3 pr-8 text-sm border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] outline-none transition-all"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
                       setSearchOpen(false);
                       setSearchQuery('');
-                    }}
-                    className="absolute right-2 text-gray-400 hover:text-gray-600"
-                    aria-label="Close search"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </form>
-              ) : (
+                    }
+                  }}
+                />
                 <button
-                  onClick={() => setSearchOpen(true)}
-                  className="flex items-center gap-2 text-gray-500 hover:text-gray-700"
-                  aria-label="Open search"
+                  type="button"
+                  onClick={() => {
+                    setSearchOpen(false);
+                    setSearchQuery('');
+                  }}
+                  className="absolute right-2 text-gray-400 hover:text-gray-600"
+                  aria-label="Close search"
                 >
-                  <Search className="w-5 h-5" />
-                  <span className="text-sm">Search</span>
+                  <X className="w-4 h-4" />
                 </button>
-              )}
+              </form>
+              {/* Search button - shown by default, hidden when searchOpen */}
+              <button
+                onClick={() => setSearchOpen(true)}
+                className={`flex items-center gap-2 text-gray-500 hover:text-gray-700 ${searchOpen ? 'hidden' : ''}`}
+                aria-label="Open search"
+              >
+                <Search className="w-5 h-5" />
+                <span className="text-sm">Search</span>
+              </button>
             </div>
             <Link
-              href={PSALMLOG_URLS.appStore}
+              href={PSALMLOG_URLS.landing}
               className="btn-primary text-sm"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Get Psalmlog App
+              Try Psalmlog
             </Link>
           </div>
 
@@ -150,11 +152,8 @@ export default function Header({ popularStates = [] }: HeaderProps) {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            <X className={`w-6 h-6 ${mobileMenuOpen ? '' : 'hidden'}`} />
+            <Menu className={`w-6 h-6 ${mobileMenuOpen ? 'hidden' : ''}`} />
           </button>
         </div>
 
@@ -193,12 +192,12 @@ export default function Header({ popularStates = [] }: HeaderProps) {
                 </button>
               </form>
               <Link
-                href={PSALMLOG_URLS.appStore}
+                href={PSALMLOG_URLS.landing}
                 className="btn-primary text-sm w-fit"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Get Psalmlog App
+                Try Psalmlog
               </Link>
             </div>
           </div>

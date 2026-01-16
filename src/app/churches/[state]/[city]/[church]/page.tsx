@@ -23,6 +23,9 @@ interface PageProps {
   params: Promise<{ state: string; city: string; church: string }>;
 }
 
+// Revalidate church pages every 24 hours (ISR)
+export const revalidate = 86400;
+
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { state: stateSlug, city: citySlug, church: churchSlug } = await params;

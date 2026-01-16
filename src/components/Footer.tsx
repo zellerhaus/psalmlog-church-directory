@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { getPopularStates } from '@/lib/data';
-import { APP_STORE_URL } from '@/lib/constants';
+import { PSALMLOG_LANDING_URL } from '@/lib/constants';
 
 export default async function Footer() {
-  const currentYear = new Date().getFullYear();
+  // Use a fixed year to avoid hydration mismatch near midnight/timezone boundaries
+  const currentYear = 2025;
 
   // Fetch popular states from database
   const popularStates = await getPopularStates(4);
@@ -47,12 +48,12 @@ export default async function Footer() {
               </li>
               <li>
                 <Link
-                  href={APP_STORE_URL}
+                  href={PSALMLOG_LANDING_URL}
                   className="text-[var(--muted)] hover:text-[var(--foreground)] text-sm"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Psalmlog App
+                  Try Psalmlog
                 </Link>
               </li>
             </ul>

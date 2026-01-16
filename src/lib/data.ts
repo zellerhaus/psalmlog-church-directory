@@ -2,6 +2,12 @@ import { supabase, isSupabaseConfigured } from './supabase';
 import type { Church, City, State, ChurchFilters, PaginatedResult } from '@/types/database';
 import type { StateContent, CityContent } from '@/types/content';
 import { DEFAULT_PAGE_SIZE } from './constants';
+import { unstable_cache } from 'next/cache';
+
+// Cache configuration
+const CACHE_REVALIDATE_SHORT = 300; // 5 minutes
+const CACHE_REVALIDATE_MEDIUM = 3600; // 1 hour
+const CACHE_REVALIDATE_LONG = 86400; // 24 hours
 
 // Helper to safely handle Supabase errors during build
 function handleError(error: unknown, context: string): void {
@@ -264,74 +270,127 @@ export async function getFeaturedCities(limit: number = 12): Promise<City[]> {
   return data || [];
 }
 
-// Get featured cities with real-time church counts (aggregated from churches table)
-export async function getFeaturedCitiesWithRealCounts(limit: number = 12): Promise<{ name: string; state_abbr: string; slug: string; state: string; church_count: number }[]> {
+// Internal function to fetch featured cities (will be cached)
+// Aggregates from churches table for accurate real-time counts
+async function _getFeaturedCitiesWithRealCounts(limit: number): Promise<{ name: string; state_abbr: string; slug: string; state: string; church_count: number }[]> {
   if (!isSupabaseConfigured() || !supabase) {
     return [];
   }
 
-  // Get all churches and aggregate by city+state (use state column for full name)
-  const { data, error } = await supabase
-    .from('churches')
-    .select('city, state, state_abbr');
+  // Get all churches and aggregate by city/state for accurate counts
+  // Note: Supabase default limit is 1000, so we fetch in batches
+  const allData: { city: string; state_abbr: string; state: string }[] = [];
+  let offset = 0;
+  const batchSize = 1000;
 
-  if (error) {
-    handleError(error, 'getFeaturedCitiesWithRealCounts');
+  while (true) {
+    const { data, error } = await supabase
+      .from('churches')
+      .select('city, state_abbr, state')
+      .range(offset, offset + batchSize - 1);
+
+    if (error) {
+      handleError(error, 'getFeaturedCitiesWithRealCounts');
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      break;
+    }
+
+    allData.push(...(data as { city: string; state_abbr: string; state: string }[]));
+
+    // If we got fewer than batchSize, we've reached the end
+    if (data.length < batchSize) {
+      break;
+    }
+
+    offset += batchSize;
+  }
+
+  if (allData.length === 0) {
     return [];
   }
-  if (!data || data.length === 0) return [];
 
-  // Count churches per city+state combination
-  const cityCounts = new Map<string, { name: string; state: string; state_abbr: string; count: number }>();
-  for (const church of data as { city: string; state: string; state_abbr: string }[]) {
+  // Aggregate by city+state
+  const cityCounts = new Map<string, { name: string; state_abbr: string; state: string; count: number }>();
+  for (const church of allData) {
     const key = `${church.city}|${church.state_abbr}`;
     const existing = cityCounts.get(key);
     if (existing) {
       existing.count++;
     } else {
-      cityCounts.set(key, { name: church.city, state: church.state, state_abbr: church.state_abbr, count: 1 });
+      cityCounts.set(key, {
+        name: church.city,
+        state_abbr: church.state_abbr,
+        state: church.state || church.state_abbr,
+        count: 1,
+      });
     }
   }
 
-  // Convert to array, sort by count descending, and limit
-  const result = Array.from(cityCounts.values())
+  // Convert to array, sort by count, limit, and format
+  return Array.from(cityCounts.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit)
     .map((city) => ({
       name: city.name,
       state_abbr: city.state_abbr,
       slug: city.name.toLowerCase().replace(/\s+/g, '-'),
       state: city.state,
       church_count: city.count,
-    }))
-    .sort((a, b) => {
-      if (b.church_count !== a.church_count) {
-        return b.church_count - a.church_count;
-      }
-      return a.name.localeCompare(b.name);
-    })
-    .slice(0, limit);
-
-  return result;
+    }));
 }
 
-// Get denomination statistics (count of churches per denomination)
-export async function getDenominationStats(limit: number = 10): Promise<{ denomination: string; count: number }[]> {
+// Get featured cities with real-time church counts (cached)
+export const getFeaturedCitiesWithRealCounts = unstable_cache(
+  _getFeaturedCitiesWithRealCounts,
+  ['featured-cities'],
+  { revalidate: CACHE_REVALIDATE_MEDIUM, tags: ['featured-cities'] }
+);
+
+// Internal function to fetch denomination stats (will be cached)
+async function _getDenominationStats(limit: number): Promise<{ denomination: string; count: number }[]> {
   if (!isSupabaseConfigured() || !supabase) {
     return [];
   }
 
-  const { data, error } = await supabase
-    .from('churches')
-    .select('denomination');
+  // Note: Supabase default limit is 1000, so we fetch in batches
+  const allData: { denomination: string | null }[] = [];
+  let offset = 0;
+  const batchSize = 1000;
 
-  if (error) {
-    handleError(error, 'getDenominationStats');
-    return [];
+  while (true) {
+    const { data, error } = await supabase
+      .from('churches')
+      .select('denomination')
+      .not('denomination', 'is', null)
+      .range(offset, offset + batchSize - 1);
+
+    if (error) {
+      handleError(error, 'getDenominationStats');
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      break;
+    }
+
+    allData.push(...(data as { denomination: string | null }[]));
+
+    // If we got fewer than batchSize, we've reached the end
+    if (data.length < batchSize) {
+      break;
+    }
+
+    offset += batchSize;
   }
-  if (!data || data.length === 0) return [];
+
+  if (allData.length === 0) return [];
 
   // Count churches per denomination
   const denomCounts = new Map<string, number>();
-  for (const church of data as { denomination: string | null }[]) {
+  for (const church of allData) {
     const denom = church.denomination || 'Other';
     denomCounts.set(denom, (denomCounts.get(denom) || 0) + 1);
   }
@@ -342,6 +401,13 @@ export async function getDenominationStats(limit: number = 10): Promise<{ denomi
     .sort((a, b) => b.count - a.count)
     .slice(0, limit);
 }
+
+// Get denomination statistics (cached for 1 hour)
+export const getDenominationStats = unstable_cache(
+  _getDenominationStats,
+  ['denomination-stats'],
+  { revalidate: CACHE_REVALIDATE_MEDIUM, tags: ['denomination-stats'] }
+);
 
 // Get popular states (states with most churches)
 export async function getPopularStates(limit: number = 4): Promise<State[]> {
@@ -380,47 +446,137 @@ export async function getChurchCountByState(stateAbbr: string): Promise<number> 
   return count || 0;
 }
 
-// Get cities with real church counts (aggregated from churches table)
-export async function getCitiesWithChurchCounts(stateAbbr: string): Promise<{ name: string; slug: string; church_count: number }[]> {
+// Internal function to get cities with church counts (will be cached)
+// Aggregates from churches table for accurate real-time counts
+async function _getCitiesWithChurchCounts(stateAbbr: string): Promise<{ name: string; slug: string; church_count: number }[]> {
   if (!isSupabaseConfigured() || !supabase) {
     return [];
   }
 
-  // Get all churches for this state and aggregate by city
-  const { data, error } = await supabase
-    .from('churches')
-    .select('city')
-    .eq('state_abbr', stateAbbr);
+  // Get all churches in the state and aggregate by city
+  // This ensures accurate counts even if cities table church_count isn't populated
+  // Note: Supabase default limit is 1000, so we fetch in batches for large states
+  const allData: { city: string }[] = [];
+  let offset = 0;
+  const batchSize = 1000;
 
-  if (error) {
-    handleError(error, 'getCitiesWithChurchCounts');
+  while (true) {
+    const { data, error } = await supabase
+      .from('churches')
+      .select('city')
+      .eq('state_abbr', stateAbbr)
+      .range(offset, offset + batchSize - 1);
+
+    if (error) {
+      handleError(error, 'getCitiesWithChurchCounts');
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      break;
+    }
+
+    allData.push(...(data as { city: string }[]));
+
+    // If we got fewer than batchSize, we've reached the end
+    if (data.length < batchSize) {
+      break;
+    }
+
+    offset += batchSize;
+  }
+
+  if (allData.length === 0) {
     return [];
   }
-  if (!data || data.length === 0) return [];
 
-  // Count churches per city
+  // Aggregate by city
   const cityCounts = new Map<string, number>();
-  for (const church of data as { city: string }[]) {
-    cityCounts.set(church.city, (cityCounts.get(church.city) || 0) + 1);
+  for (const church of allData) {
+    const cityName = church.city;
+    if (cityName) {
+      cityCounts.set(cityName, (cityCounts.get(cityName) || 0) + 1);
+    }
   }
 
-  // Convert to array with slugs and sort by count descending
-  const result = Array.from(cityCounts.entries()).map(([name, count]) => ({
-    name,
-    slug: name.toLowerCase().replace(/\s+/g, '-'),
-    church_count: count,
-  }));
-
-  // Sort by church count descending, then by name
-  result.sort((a, b) => {
-    if (b.church_count !== a.church_count) {
-      return b.church_count - a.church_count;
-    }
-    return a.name.localeCompare(b.name);
-  });
-
-  return result;
+  // Convert to array with slugs, sorted by count descending
+  return Array.from(cityCounts.entries())
+    .map(([name, count]) => ({
+      name,
+      slug: name.toLowerCase().replace(/\s+/g, '-'),
+      church_count: count,
+    }))
+    .sort((a, b) => b.church_count - a.church_count);
 }
+
+// Get cities with church counts (cached for 24 hours - used by sitemaps)
+// Note: unstable_cache automatically includes function arguments in the cache key
+export const getCitiesWithChurchCounts = (stateAbbr: string) =>
+  unstable_cache(
+    () => _getCitiesWithChurchCounts(stateAbbr),
+    ['cities-with-counts', stateAbbr],
+    { revalidate: CACHE_REVALIDATE_LONG, tags: ['cities-with-counts'] }
+  )();
+
+// Internal function to get ALL cities for sitemap (single query instead of 51)
+async function _getAllCitiesForSitemap(): Promise<{ slug: string; state_abbr: string }[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  // Fetch all cities in a single query - only the fields we need for sitemaps
+  const { data, error } = await supabase
+    .from('cities')
+    .select('slug, state_abbr')
+    .order('state_abbr')
+    .order('name');
+
+  if (error) {
+    handleError(error, 'getAllCitiesForSitemap');
+    return [];
+  }
+
+  return (data as { slug: string; state_abbr: string }[]) || [];
+}
+
+// Get all cities for sitemap (cached for 24 hours)
+export const getAllCitiesForSitemap = unstable_cache(
+  _getAllCitiesForSitemap,
+  ['all-cities-sitemap'],
+  { revalidate: CACHE_REVALIDATE_LONG, tags: ['all-cities-sitemap'] }
+);
+
+// Internal function to get all churches for a state sitemap (single query)
+async function _getChurchesForStateSitemap(stateAbbr: string, limit: number): Promise<{ slug: string; city: string; updated_at: string }[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  // Single efficient query - only fetch fields needed for sitemap
+  const { data, error } = await supabase
+    .from('churches')
+    .select('slug, city, updated_at')
+    .eq('state_abbr', stateAbbr)
+    .order('city')
+    .order('name')
+    .limit(limit);
+
+  if (error) {
+    handleError(error, 'getChurchesForStateSitemap');
+    return [];
+  }
+
+  return (data as { slug: string; city: string; updated_at: string }[]) || [];
+}
+
+// Get all churches for a state sitemap (cached for 24 hours)
+// Note: Cache key includes stateAbbr and limit to ensure per-state caching
+export const getChurchesForStateSitemap = (stateAbbr: string, limit: number) =>
+  unstable_cache(
+    () => _getChurchesForStateSitemap(stateAbbr, limit),
+    ['churches-state-sitemap', stateAbbr, String(limit)],
+    { revalidate: CACHE_REVALIDATE_LONG, tags: ['churches-state-sitemap'] }
+  )();
 
 // Get nearby churches by coordinates
 export async function getNearbyChurches(

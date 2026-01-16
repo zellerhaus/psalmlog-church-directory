@@ -1,14 +1,15 @@
 import { SITE_URL, US_STATES } from '@/lib/constants';
-import { getCitiesWithChurchCounts } from '@/lib/data';
+import { getAllCitiesForSitemap } from '@/lib/data';
 
 // Generate XML sitemap for states and cities
 export async function GET() {
   const urls: string[] = [];
+  const lastmod = new Date().toISOString();
 
   // Main churches directory page
   urls.push(`  <url>
     <loc>${SITE_URL}/churches</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>`);
@@ -17,20 +18,25 @@ export async function GET() {
   for (const state of US_STATES) {
     urls.push(`  <url>
     <loc>${SITE_URL}/churches/${state.slug}</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>`);
   }
 
-  // All city pages (from database)
+  // All city pages - fetch all cities in a single query
   try {
-    for (const state of US_STATES) {
-      const cities = await getCitiesWithChurchCounts(state.abbr);
-      for (const city of cities) {
+    const allCities = await getAllCitiesForSitemap();
+
+    // Create a map of state_abbr to slug for quick lookup
+    const stateSlugMap = new Map<string, string>(US_STATES.map(s => [s.abbr, s.slug]));
+
+    for (const city of allCities) {
+      const stateSlug = stateSlugMap.get(city.state_abbr);
+      if (stateSlug) {
         urls.push(`  <url>
-    <loc>${SITE_URL}/churches/${state.slug}/${city.slug}</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
+    <loc>${SITE_URL}/churches/${stateSlug}/${city.slug}</loc>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`);

@@ -17,6 +17,9 @@ interface CityPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+// Revalidate city pages every 24 hours (ISR)
+export const revalidate = 86400;
+
 export async function generateMetadata({ params }: CityPageProps): Promise<Metadata> {
   const { state: stateSlug, city: citySlug } = await params;
 

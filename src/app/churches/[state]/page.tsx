@@ -15,6 +15,9 @@ interface StatePageProps {
   params: Promise<{ state: string }>;
 }
 
+// Revalidate the page every 24 hours (ISR)
+export const revalidate = 86400;
+
 // Generate static params for all states
 export async function generateStaticParams() {
   return US_STATES.map((state) => ({

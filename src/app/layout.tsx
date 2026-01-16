@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Work_Sans, Playfair_Display } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, APP_STORE_URL, PLAY_STORE_URL } from "@/lib/constants";
 
@@ -105,8 +106,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Google Tag Manager */}
-        <script
+        <OrganizationSchema />
+        <WebSiteSchema />
+      </head>
+      <body
+        className={`${workSans.variable} ${playfair.variable} antialiased`}
+        suppressHydrationWarning
+      >
+        {/* Google Tag Manager - using next/script to avoid hydration issues */}
+        <Script
+          id="gtm-script"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -115,13 +125,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-K3SJLD64');`,
           }}
         />
-        {/* End Google Tag Manager */}
-        <OrganizationSchema />
-        <WebSiteSchema />
-      </head>
-      <body
-        className={`${workSans.variable} ${playfair.variable} antialiased`}
-      >
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
@@ -131,7 +134,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
-        {/* End Google Tag Manager (noscript) */}
+        {/* End Google Tag Manager */}
         {children}
       </body>
     </html>

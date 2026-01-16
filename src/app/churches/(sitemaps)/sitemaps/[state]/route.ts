@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { SITE_URL, US_STATES } from '@/lib/constants';
-import { getCitiesWithChurchCounts, getChurchesByCity } from '@/lib/data';
+import { getChurchesForStateSitemap } from '@/lib/data';
 
 // Maximum URLs per sitemap (Google recommends max 50,000)
 const MAX_URLS_PER_SITEMAP = 5000;
@@ -21,36 +21,23 @@ export async function GET(
   const urls: string[] = [];
 
   try {
-    const cities = await getCitiesWithChurchCounts(stateInfo.abbr);
+    // Single efficient query to get all churches for this state
+    const churches = await getChurchesForStateSitemap(stateInfo.abbr, MAX_URLS_PER_SITEMAP);
 
-    for (const city of cities) {
-      if (urls.length >= MAX_URLS_PER_SITEMAP) break;
+    for (const church of churches) {
+      const lastmod = church.updated_at
+        ? new Date(church.updated_at).toISOString()
+        : new Date().toISOString();
 
-      // Fetch churches in batches
-      let page = 1;
-      let hasMore = true;
+      // Generate city slug from city name
+      const citySlug = church.city.toLowerCase().replace(/\s+/g, '-');
 
-      while (hasMore && urls.length < MAX_URLS_PER_SITEMAP) {
-        const result = await getChurchesByCity(stateInfo.abbr, city.name, {}, page, 100);
-
-        for (const church of result.data) {
-          if (urls.length >= MAX_URLS_PER_SITEMAP) break;
-
-          const lastmod = church.updated_at
-            ? new Date(church.updated_at).toISOString()
-            : new Date().toISOString();
-
-          urls.push(`  <url>
-    <loc>${SITE_URL}/churches/${stateInfo.slug}/${city.slug}/${church.slug}</loc>
+      urls.push(`  <url>
+    <loc>${SITE_URL}/churches/${stateInfo.slug}/${citySlug}/${church.slug}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>`);
-        }
-
-        hasMore = page < result.totalPages;
-        page++;
-      }
     }
   } catch {
     // Database not available, return empty sitemap

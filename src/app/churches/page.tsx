@@ -8,6 +8,9 @@ import HomeFAQSection from '@/components/HomeFAQSection';
 import { getTotalChurchCount, getFeaturedCitiesWithRealCounts, getDenominationStats } from '@/lib/data';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, US_STATES } from '@/lib/constants';
 
+// Revalidate the page every hour (ISR)
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: `Find a Church Near You`,
   description: `Search churches across America. Filter by denomination and worship style. Visitor guides for every church.`,
