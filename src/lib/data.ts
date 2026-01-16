@@ -1,13 +1,19 @@
 import { supabase, isSupabaseConfigured } from './supabase';
 import type { Church, City, State, ChurchFilters, PaginatedResult } from '@/types/database';
 import type { StateContent, CityContent } from '@/types/content';
-import { DEFAULT_PAGE_SIZE } from './constants';
+import { DEFAULT_PAGE_SIZE, US_STATES } from './constants';
 import { unstable_cache } from 'next/cache';
+
+// Set of state names (lowercase) to filter out invalid "cities"
+const STATE_NAMES_SET = new Set(
+  US_STATES.map(s => s.name.toLowerCase())
+);
 
 // Cache configuration
 const CACHE_REVALIDATE_SHORT = 300; // 5 minutes
 const CACHE_REVALIDATE_MEDIUM = 3600; // 1 hour
 const CACHE_REVALIDATE_LONG = 86400; // 24 hours
+const CACHE_REVALIDATE_WEEK = 604800; // 1 week
 
 // Helper to safely handle Supabase errors during build
 function handleError(error: unknown, context: string): void {
@@ -33,8 +39,8 @@ export async function getStates(): Promise<State[]> {
   return data || [];
 }
 
-// Get a single state by slug
-export async function getStateBySlug(slug: string): Promise<State | null> {
+// Internal function to get state by slug
+async function _getStateBySlug(slug: string): Promise<State | null> {
   if (!isSupabaseConfigured() || !supabase) {
     return null;
   }
@@ -51,6 +57,14 @@ export async function getStateBySlug(slug: string): Promise<State | null> {
   }
   return data;
 }
+
+// Get a single state by slug (cached for 1 week)
+export const getStateBySlug = (slug: string) =>
+  unstable_cache(
+    () => _getStateBySlug(slug),
+    ['state-by-slug', slug],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['states', `state-${slug}`] }
+  )();
 
 // Get cities for a state
 export async function getCitiesByState(stateAbbr: string): Promise<City[]> {
@@ -71,8 +85,8 @@ export async function getCitiesByState(stateAbbr: string): Promise<City[]> {
   return data || [];
 }
 
-// Get a single city by slug and state
-export async function getCityBySlug(stateAbbr: string, citySlug: string): Promise<City | null> {
+// Internal function to get city by slug
+async function _getCityBySlug(stateAbbr: string, citySlug: string): Promise<City | null> {
   if (!isSupabaseConfigured() || !supabase) {
     return null;
   }
@@ -90,6 +104,14 @@ export async function getCityBySlug(stateAbbr: string, citySlug: string): Promis
   }
   return data;
 }
+
+// Get a single city by slug and state (cached for 1 week)
+export const getCityBySlug = (stateAbbr: string, citySlug: string) =>
+  unstable_cache(
+    () => _getCityBySlug(stateAbbr, citySlug),
+    ['city-by-slug', stateAbbr, citySlug],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['cities', `city-${stateAbbr}-${citySlug}`] }
+  )();
 
 // Get churches for a city with filters and pagination
 export async function getChurchesByCity(
@@ -315,6 +337,10 @@ async function _getFeaturedCitiesWithRealCounts(limit: number): Promise<{ name: 
   // Aggregate by city+state
   const cityCounts = new Map<string, { name: string; state_abbr: string; state: string; count: number }>();
   for (const church of allData) {
+    // Skip entries where city name matches a state name (data quality issue)
+    if (STATE_NAMES_SET.has(church.city.toLowerCase())) {
+      continue;
+    }
     const key = `${church.city}|${church.state_abbr}`;
     const existing = cityCounts.get(key);
     if (existing) {
@@ -428,8 +454,8 @@ export async function getPopularStates(limit: number = 4): Promise<State[]> {
   return data || [];
 }
 
-// Get total church count for a state (real-time from churches table)
-export async function getChurchCountByState(stateAbbr: string): Promise<number> {
+// Internal function to get church count by state
+async function _getChurchCountByState(stateAbbr: string): Promise<number> {
   if (!isSupabaseConfigured() || !supabase) {
     return 0;
   }
@@ -445,6 +471,14 @@ export async function getChurchCountByState(stateAbbr: string): Promise<number> 
   }
   return count || 0;
 }
+
+// Get total church count for a state (cached for 1 week)
+export const getChurchCountByState = (stateAbbr: string) =>
+  unstable_cache(
+    () => _getChurchCountByState(stateAbbr),
+    ['church-count-by-state', stateAbbr],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['church-counts', `church-count-${stateAbbr}`] }
+  )();
 
 // Internal function to get cities with church counts (will be cached)
 // Aggregates from churches table for accurate real-time counts
@@ -509,13 +543,13 @@ async function _getCitiesWithChurchCounts(stateAbbr: string): Promise<{ name: st
     .sort((a, b) => b.church_count - a.church_count);
 }
 
-// Get cities with church counts (cached for 24 hours - used by sitemaps)
+// Get cities with church counts (cached for 1 week)
 // Note: unstable_cache automatically includes function arguments in the cache key
 export const getCitiesWithChurchCounts = (stateAbbr: string) =>
   unstable_cache(
     () => _getCitiesWithChurchCounts(stateAbbr),
     ['cities-with-counts', stateAbbr],
-    { revalidate: CACHE_REVALIDATE_LONG, tags: ['cities-with-counts'] }
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['cities-with-counts', `cities-${stateAbbr}`] }
   )();
 
 // Internal function to get ALL cities for sitemap (single query instead of 51)
@@ -659,8 +693,8 @@ export async function getRelatedChurches(
 // LOCATION CONTENT (Pre-generated state/city page content)
 // ============================================================================
 
-// Get pre-generated content for a state page
-export async function getStateContent(stateAbbr: string): Promise<StateContent | null> {
+// Internal function to get state content
+async function _getStateContent(stateAbbr: string): Promise<StateContent | null> {
   if (!isSupabaseConfigured() || !supabase) {
     return null;
   }
@@ -680,11 +714,16 @@ export async function getStateContent(stateAbbr: string): Promise<StateContent |
   return data as StateContent | null;
 }
 
-// Get pre-generated content for a city page
-export async function getCityContent(
-  stateAbbr: string,
-  citySlug: string
-): Promise<CityContent | null> {
+// Get pre-generated content for a state page (cached for 1 week)
+export const getStateContent = (stateAbbr: string) =>
+  unstable_cache(
+    () => _getStateContent(stateAbbr),
+    ['state-content', stateAbbr],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['state-content', `state-content-${stateAbbr}`] }
+  )();
+
+// Internal function to get city content
+async function _getCityContent(stateAbbr: string, citySlug: string): Promise<CityContent | null> {
   if (!isSupabaseConfigured() || !supabase) {
     return null;
   }
@@ -704,3 +743,11 @@ export async function getCityContent(
 
   return data as CityContent | null;
 }
+
+// Get pre-generated content for a city page (cached for 1 week)
+export const getCityContent = (stateAbbr: string, citySlug: string) =>
+  unstable_cache(
+    () => _getCityContent(stateAbbr, citySlug),
+    ['city-content', stateAbbr, citySlug],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['city-content', `city-content-${stateAbbr}-${citySlug}`] }
+  )();
