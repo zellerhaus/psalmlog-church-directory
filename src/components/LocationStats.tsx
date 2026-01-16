@@ -68,17 +68,17 @@ export default function LocationStats({
 
   return (
     <div className="bg-[var(--secondary)] rounded-lg p-6 mb-8">
-      <h3 className="text-lg font-semibold mb-4 text-[var(--foreground)] font-serif">
+      <h2 className="text-lg font-semibold mb-4 text-[var(--foreground)] font-serif">
         Churches in {locationName} at a Glance
-      </h3>
+      </h2>
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Denominations */}
         {topDenominations.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-[var(--muted)] mb-3 uppercase tracking-wide">
+            <h3 className="text-sm font-medium text-[var(--muted)] mb-3 uppercase tracking-wide">
               Top Denominations
-            </h4>
+            </h3>
             <div className="space-y-2">
               {topDenominations.map(([name, count]) => (
                 <div key={name} className="flex items-center justify-between">
@@ -95,9 +95,9 @@ export default function LocationStats({
         {/* Worship Styles */}
         {topWorshipStyles.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-[var(--muted)] mb-3 uppercase tracking-wide">
+            <h3 className="text-sm font-medium text-[var(--muted)] mb-3 uppercase tracking-wide">
               Worship Styles
-            </h4>
+            </h3>
             <div className="flex flex-wrap gap-2">
               {topWorshipStyles.map(([style, count]) => (
                 <span
@@ -113,9 +113,9 @@ export default function LocationStats({
 
         {/* Programs */}
         <div className="md:col-span-2">
-          <h4 className="text-sm font-medium text-[var(--muted)] mb-3 uppercase tracking-wide">
+          <h3 className="text-sm font-medium text-[var(--muted)] mb-3 uppercase tracking-wide">
             Family Programs Available
-          </h4>
+          </h3>
           <div className="grid grid-cols-3 gap-4">
             <ProgramStat
               label="Kids Ministry"

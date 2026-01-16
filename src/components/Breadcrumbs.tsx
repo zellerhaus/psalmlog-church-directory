@@ -18,6 +18,7 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
           <Link
             href="/churches"
             className="text-[var(--muted)] hover:text-[var(--foreground)] flex items-center"
+            aria-label="Home"
           >
             <Home className="w-4 h-4" />
           </Link>

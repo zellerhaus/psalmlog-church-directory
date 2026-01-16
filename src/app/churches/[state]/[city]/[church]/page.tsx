@@ -240,7 +240,7 @@ export default async function ChurchDetailPage({ params }: PageProps) {
           <div className="lg:col-span-2 space-y-8">
             {/* Contact & Location Card */}
             <div className="card p-6">
-              <h2 className="text-xl font-semibold mb-4">Contact & Location</h2>
+              <h2 className="text-xl font-semibold mb-4">Contact & Location for {church.name}</h2>
 
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
@@ -310,7 +310,7 @@ export default async function ChurchDetailPage({ params }: PageProps) {
               <div className="card p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Clock className="w-5 h-5 text-[var(--muted)]" />
-                  Service Times
+                  Service Times for {church.name}
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {church.service_times.map((service: ServiceTime, index: number) => (
@@ -339,7 +339,7 @@ export default async function ChurchDetailPage({ params }: PageProps) {
                 <div className="card p-6">
                   <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                     <Users className="w-5 h-5 text-[var(--muted)]" />
-                    Programs & Ministries
+                    Programs & Ministries at {church.name}
                   </h2>
                   <div className="grid sm:grid-cols-3 gap-4">
                     {church.has_kids_ministry && (
@@ -367,7 +367,7 @@ export default async function ChurchDetailPage({ params }: PageProps) {
             {/* About */}
             {church.ai_description && (
               <div className="card p-6">
-                <h2 className="text-xl font-semibold mb-4">About This Church</h2>
+                <h2 className="text-xl font-semibold mb-4">About {church.name}</h2>
                 <p className="text-[var(--muted)] leading-relaxed">{church.ai_description}</p>
               </div>
             )}
@@ -375,6 +375,7 @@ export default async function ChurchDetailPage({ params }: PageProps) {
             {/* What to Expect - Client Component for interactivity */}
             <ChurchClientSection
               whatToExpect={church.ai_what_to_expect}
+              churchName={church.name}
             />
 
             {/* Disclaimer */}

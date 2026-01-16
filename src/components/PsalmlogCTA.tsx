@@ -71,7 +71,7 @@ export default function PsalmlogCTA({ variant = 'sidebar' }: PsalmlogCTAProps) {
 
   // Default: sidebar variant
   return (
-    <div className="bg-white border border-[var(--border)] rounded-lg p-6 sticky top-24">
+    <div className="bg-white border border-[var(--border)] rounded-lg p-6 lg:sticky lg:top-24">
       <div className="text-center">
         <div className="w-14 h-14 bg-[var(--secondary)] rounded-xl flex items-center justify-center mx-auto mb-4">
           <BookOpen className="w-7 h-7 text-[var(--primary)]" />
