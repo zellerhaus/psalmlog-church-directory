@@ -25,7 +25,12 @@
       "Bash(brew list:*)",
       "Bash(npm install:*)",
       "Bash(node scripts/compress-images.mjs:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nSEO improvements, image compression, and security hardening\n\n- Enable indexing for all pages \\(remove 300-word threshold\\)\n- Fix duplicate site name in meta titles\n- Shorten meta descriptions to under 155 characters\n- Simplify church page titles to fit 60 char limit\n- Fix heading hierarchy \\(H1 → H2 → H3\\) across all pages\n- Update App Store/Play Store URLs to full paths without UTMs\n- Add Content-Security-Policy header\n- Compress images \\(73MB → 22MB, 70% reduction\\)\n- Add rate limiting middleware for scraping protection\n- Block aggressive SEO bots in robots.txt\n- Add crawl-delay directives for search engines\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nSEO improvements, image compression, and security hardening\n\n- Enable indexing for all pages \\(remove 300-word threshold\\)\n- Fix duplicate site name in meta titles\n- Shorten meta descriptions to under 155 characters\n- Simplify church page titles to fit 60 char limit\n- Fix heading hierarchy \\(H1 → H2 → H3\\) across all pages\n- Update App Store/Play Store URLs to full paths without UTMs\n- Add Content-Security-Policy header\n- Compress images \\(73MB → 22MB, 70% reduction\\)\n- Add rate limiting middleware for scraping protection\n- Block aggressive SEO bots in robots.txt\n- Add crawl-delay directives for search engines\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(lsof:*)",
+      "Bash(xargs kill -9)",
+      "Bash(npm run dev:*)",
+      "Bash(git commit:*)",
+      "Bash(tee:*)"
     ]
   }
 }

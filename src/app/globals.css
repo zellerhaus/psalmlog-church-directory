@@ -50,6 +50,13 @@ html, body {
   overflow-x: hidden;
 }
 
+/* Prevent long text from causing horizontal overflow */
+h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
 /* Serif font for headlines */
 .font-serif {
   font-family: var(--font-playfair), Georgia, serif;
@@ -79,6 +86,8 @@ html, body {
 
 .card {
   @apply bg-white rounded-lg border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow overflow-hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .badge {
