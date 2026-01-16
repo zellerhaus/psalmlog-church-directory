@@ -48,6 +48,7 @@ function revalidatePath(path: string) {
  * - states, state-{slug}
  * - cities, city-{stateAbbr}-{citySlug}
  * - cities-with-counts, cities-{stateAbbr}
+ * - churches, churches-{stateAbbr}-{cityName} (for city page church listings)
  * - church-counts, church-count-{stateAbbr}
  * - state-content, state-content-{stateAbbr}
  * - city-content, city-content-{stateAbbr}-{citySlug}

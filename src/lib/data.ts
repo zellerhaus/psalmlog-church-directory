@@ -113,8 +113,8 @@ export const getCityBySlug = (stateAbbr: string, citySlug: string) =>
     { revalidate: CACHE_REVALIDATE_WEEK, tags: ['cities', `city-${stateAbbr}-${citySlug}`] }
   )();
 
-// Get churches for a city with filters and pagination
-export async function getChurchesByCity(
+// Internal function to get churches for a city with filters and pagination
+async function _getChurchesByCity(
   stateAbbr: string,
   city: string,
   filters: ChurchFilters = {},
@@ -168,6 +168,28 @@ export async function getChurchesByCity(
     totalPages: Math.ceil((count || 0) / pageSize),
   };
 }
+
+// Get churches for a city with filters and pagination (cached for 1 week)
+// Cache key includes all parameters to ensure unique caching per filter/page combination
+export const getChurchesByCity = (
+  stateAbbr: string,
+  city: string,
+  filters: ChurchFilters = {},
+  page: number = 1,
+  pageSize: number = DEFAULT_PAGE_SIZE
+) =>
+  unstable_cache(
+    () => _getChurchesByCity(stateAbbr, city, filters, page, pageSize),
+    [
+      'churches-by-city',
+      stateAbbr,
+      city.toLowerCase(),
+      JSON.stringify(filters),
+      String(page),
+      String(pageSize),
+    ],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['churches', `churches-${stateAbbr}-${city.toLowerCase()}`] }
+  )();
 
 // Get a single church by slug
 export async function getChurchBySlug(
