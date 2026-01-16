@@ -9,7 +9,7 @@ import Pagination from '@/components/Pagination';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import { searchChurches } from '@/lib/data';
-import { SITE_NAME, DEFAULT_PAGE_SIZE, US_STATES } from '@/lib/constants';
+import { SITE_NAME, SITE_URL, DEFAULT_PAGE_SIZE, US_STATES } from '@/lib/constants';
 import type { ChurchFilters, Church, PaginatedResult } from '@/types/database';
 
 interface SearchPageProps {
@@ -20,16 +20,55 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
   const params = await searchParams;
   const query = typeof params.q === 'string' ? params.q : '';
 
+  const baseMetadata = {
+    openGraph: {
+      type: 'website' as const,
+      siteName: SITE_NAME,
+      images: [
+        {
+          url: `${SITE_URL}/og/home`,
+          width: 1200,
+          height: 630,
+          alt: 'Search Churches - Psalmlog Church Finder',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image' as const,
+      images: [`${SITE_URL}/og/home`],
+    },
+  };
+
   if (query) {
     return {
       title: `Search Results for "${query}"`,
       description: `Find churches matching "${query}". Filter by denomination and worship style.`,
+      openGraph: {
+        ...baseMetadata.openGraph,
+        title: `Search Results for "${query}" | ${SITE_NAME}`,
+        description: `Find churches matching "${query}". Filter by denomination and worship style.`,
+      },
+      twitter: {
+        ...baseMetadata.twitter,
+        title: `Search Results for "${query}" | ${SITE_NAME}`,
+        description: `Find churches matching "${query}". Filter by denomination and worship style.`,
+      },
     };
   }
 
   return {
     title: `Search Churches`,
     description: 'Search for churches by city, zip code, or name. Filter by denomination and worship style.',
+    openGraph: {
+      ...baseMetadata.openGraph,
+      title: `Search Churches | ${SITE_NAME}`,
+      description: 'Search for churches by city, zip code, or name. Filter by denomination and worship style.',
+    },
+    twitter: {
+      ...baseMetadata.twitter,
+      title: `Search Churches | ${SITE_NAME}`,
+      description: 'Search for churches by city, zip code, or name. Filter by denomination and worship style.',
+    },
   };
 }
 

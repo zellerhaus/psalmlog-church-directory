@@ -6,7 +6,7 @@ import PsalmlogCTA from '@/components/PsalmlogCTA';
 import FirstVisitGuideCTA from '@/components/FirstVisitGuideCTA';
 import HomeFAQSection from '@/components/HomeFAQSection';
 import { getTotalChurchCount, getFeaturedCitiesWithRealCounts, getDenominationStats } from '@/lib/data';
-import { SITE_NAME, SITE_DESCRIPTION, US_STATES } from '@/lib/constants';
+import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, US_STATES } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: `Find a Church Near You`,
@@ -15,6 +15,22 @@ export const metadata: Metadata = {
     title: `Find a Church Near You | ${SITE_NAME}`,
     description: SITE_DESCRIPTION,
     type: 'website',
+    url: `${SITE_URL}/churches`,
+    siteName: SITE_NAME,
+    images: [
+      {
+        url: `${SITE_URL}/og/home`,
+        width: 1200,
+        height: 630,
+        alt: 'Find Your Church Home - Psalmlog Church Finder',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Find a Church Near You | ${SITE_NAME}`,
+    description: SITE_DESCRIPTION,
+    images: [`${SITE_URL}/og/home`],
   },
 };
 

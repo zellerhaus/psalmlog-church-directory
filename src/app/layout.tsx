@@ -28,11 +28,20 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: SITE_NAME,
     type: "website",
+    images: [
+      {
+        url: `${SITE_URL}/og/home`,
+        width: 1200,
+        height: 630,
+        alt: "Psalmlog Church Finder - Find Your Church Home",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
+    images: [`${SITE_URL}/og/home`],
   },
   robots: {
     index: true,
