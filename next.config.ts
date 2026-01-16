@@ -56,15 +56,10 @@ const nextConfig: NextConfig = {
             value: 'strict-origin-when-cross-origin',
           },
           {
+            // Relaxed CSP to allow GTM to load third-party scripts dynamically
+            // Security is maintained via frame-ancestors (clickjacking) and form-action
             key: 'Content-Security-Policy',
             value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://va.vercel-scripts.com https://static.cloudflareinsights.com https://connect.facebook.net https://cdn.amplitude.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://beacon-v2.helpscout.net",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://*.supabase.co https://apps.apple.com https://www.googletagmanager.com https://www.google-analytics.com https://*.google.com https://*.doubleclick.net",
-              "connect-src 'self' https://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https://cloudflareinsights.com https://*.google.com https://analytics.google.com https://connect.facebook.net https://*.facebook.com https://cdn.amplitude.com https://api.amplitude.com https://beacon-v2.helpscout.net",
-              "frame-src https://www.googletagmanager.com https://www.facebook.com https://bid.g.doubleclick.net",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
