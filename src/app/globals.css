@@ -46,6 +46,7 @@ body {
   font-family: var(--font-work-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 /* Serif font for headlines */
