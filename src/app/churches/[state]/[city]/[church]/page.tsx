@@ -237,7 +237,7 @@ export default async function ChurchDetailPage({ params }: PageProps) {
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-8 min-w-0">
             {/* Contact & Location Card */}
             <div className="card p-6">
               <h2 className="text-xl font-semibold mb-4">Contact & Location for {church.name}</h2>
@@ -386,7 +386,7 @@ export default async function ChurchDetailPage({ params }: PageProps) {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-6 min-w-0">
             <PsalmlogCTA variant="sidebar" campaign="church_detail" />
 
             {/* Quick Actions */}
