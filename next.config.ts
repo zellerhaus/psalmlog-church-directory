@@ -101,6 +101,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  // Rewrites for sitemap .xml extensions
+  async rewrites() {
+    return [
+      // Rewrite /churches/sitemaps/alabama.xml to /churches/sitemaps/alabama
+      {
+        source: '/churches/sitemaps/:state.xml',
+        destination: '/churches/sitemaps/:state',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
