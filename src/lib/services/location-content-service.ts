@@ -67,14 +67,45 @@ export class LocationContentService {
    * Compute statistics for a state from church data
    */
   async computeStateStats(stateAbbr: string): Promise<LocationStats> {
-    const { data: churches, error } = await this.supabase
-      .from('churches')
-      .select(
-        'denomination, worship_style, has_kids_ministry, has_youth_group, has_small_groups, city'
-      )
-      .eq('state_abbr', stateAbbr);
+    // Fetch all churches with pagination to avoid 1000 row limit
+    const churches: {
+      denomination: string | null;
+      worship_style: string[] | null;
+      has_kids_ministry: boolean | null;
+      has_youth_group: boolean | null;
+      has_small_groups: boolean | null;
+      city: string;
+    }[] = [];
+    const PAGE_SIZE = 1000;
+    let offset = 0;
+    let hasMore = true;
 
-    if (error || !churches || churches.length === 0) {
+    while (hasMore) {
+      const { data, error } = await this.supabase
+        .from('churches')
+        .select(
+          'denomination, worship_style, has_kids_ministry, has_youth_group, has_small_groups, city'
+        )
+        .eq('state_abbr', stateAbbr)
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (error) {
+        console.error(`Error fetching churches for ${stateAbbr}:`, error);
+        break;
+      }
+
+      if (data && data.length > 0) {
+        churches.push(...data);
+        offset += PAGE_SIZE;
+        if (data.length < PAGE_SIZE) {
+          hasMore = false;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+
+    if (churches.length === 0) {
       return this.emptyStats();
     }
 
@@ -420,18 +451,42 @@ export class LocationContentService {
   async getCitiesForState(
     stateAbbr: string
   ): Promise<{ city: string; slug: string }[]> {
-    const { data, error } = await this.supabase
-      .from('churches')
-      .select('city')
-      .eq('state_abbr', stateAbbr);
+    // Fetch all churches with pagination to avoid 1000 row limit
+    const allRows: { city: string }[] = [];
+    const PAGE_SIZE = 1000;
+    let offset = 0;
+    let hasMore = true;
 
-    if (error || !data) {
+    while (hasMore) {
+      const { data, error } = await this.supabase
+        .from('churches')
+        .select('city')
+        .eq('state_abbr', stateAbbr)
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (error) {
+        console.error(`Error fetching cities for ${stateAbbr}:`, error);
+        break;
+      }
+
+      if (data && data.length > 0) {
+        allRows.push(...data);
+        offset += PAGE_SIZE;
+        if (data.length < PAGE_SIZE) {
+          hasMore = false;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+
+    if (allRows.length === 0) {
       return [];
     }
 
     // Get unique cities
     const uniqueCities = new Map<string, string>();
-    for (const row of data) {
+    for (const row of allRows) {
       const slug = row.city.toLowerCase().replace(/\s+/g, '-');
       if (!uniqueCities.has(slug)) {
         uniqueCities.set(slug, row.city);
