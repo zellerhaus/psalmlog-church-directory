@@ -10,7 +10,7 @@ export async function GET() {
   </sitemap>
 ${US_STATES.map(
   (state) => `  <sitemap>
-    <loc>${SITE_URL}/churches/sitemaps/${state.slug}</loc>
+    <loc>${SITE_URL}/churches/sitemaps/${state.slug}.xml</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
   </sitemap>`
 ).join('\n')}

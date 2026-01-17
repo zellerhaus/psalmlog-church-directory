@@ -4,7 +4,6 @@
 # Default rules for all bots
 User-agent: *
 Allow: /
-Crawl-delay: 1
 
 # Block API endpoints and internal routes
 Disallow: /api/
