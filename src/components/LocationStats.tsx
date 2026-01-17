@@ -134,6 +134,13 @@ export default function LocationStats({
             />
           </div>
         </div>
+
+        {/* Disclaimer */}
+        <div className="md:col-span-2 pt-4 border-t border-[var(--border)]">
+          <p className="text-xs text-[var(--muted)] italic">
+            This information may not cover every church in {locationName}. We&apos;re constantly working to improve our database and add more churches.
+          </p>
+        </div>
       </div>
     </div>
   );

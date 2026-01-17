@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { MapPin } from 'lucide-react';
+import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
 import SearchBox from '@/components/SearchBox';
@@ -11,8 +11,11 @@ import HeroImage from '@/components/HeroImage';
 import { getChurchCountByState, getCitiesWithChurchCounts, getStateContent } from '@/lib/data';
 import { US_STATES, SITE_NAME, SITE_URL, hasEnoughContent } from '@/lib/constants';
 
+const CITIES_PER_PAGE = 40;
+
 interface StatePageProps {
   params: Promise<{ state: string }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
 // Revalidate the page every 24 hours (ISR)
@@ -107,8 +110,10 @@ function BreadcrumbSchema({ stateInfo, stateSlug }: { stateInfo: typeof US_STATE
   );
 }
 
-export default async function StatePage({ params }: StatePageProps) {
+export default async function StatePage({ params, searchParams }: StatePageProps) {
   const { state: stateSlug } = await params;
+  const { page } = await searchParams;
+  const currentPage = Math.max(1, parseInt(page || '1', 10) || 1);
 
   // Find state info from constants
   const stateInfo = US_STATES.find((s) => s.slug === stateSlug);
@@ -195,30 +200,120 @@ export default async function StatePage({ params }: StatePageProps) {
             {/* City Grid */}
             {cities.length > 0 ? (
               <>
-                <h2 className="text-xl font-semibold mb-4">Cities in {stateInfo.name}</h2>
-                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {cities.map((city) => (
-                    <Link
-                      key={city.slug}
-                      href={`/churches/${stateSlug}/${city.slug}`}
-                      className="card p-4 hover:border-[var(--primary)]"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-[var(--secondary)] rounded-lg flex items-center justify-center">
-                            <MapPin className="w-5 h-5 text-[var(--primary)]" />
-                          </div>
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-[var(--foreground)]">{city.name}</h3>
-                          <p className="text-sm text-[var(--primary)]">
-                            {city.church_count} church{city.church_count !== 1 ? 'es' : ''}
+                {(() => {
+                  const totalPages = Math.ceil(cities.length / CITIES_PER_PAGE);
+                  const startIndex = (currentPage - 1) * CITIES_PER_PAGE;
+                  const endIndex = startIndex + CITIES_PER_PAGE;
+                  const paginatedCities = cities.slice(startIndex, endIndex);
+                  const showPagination = totalPages > 1;
+
+                  return (
+                    <>
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold">Cities in {stateInfo.name}</h2>
+                        {showPagination && (
+                          <p className="text-sm text-[var(--muted)]">
+                            Showing {startIndex + 1}-{Math.min(endIndex, cities.length)} of {cities.length} cities
                           </p>
-                        </div>
+                        )}
                       </div>
-                    </Link>
-                  ))}
-                </div>
+                      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {paginatedCities.map((city) => (
+                          <Link
+                            key={city.slug}
+                            href={`/churches/${stateSlug}/${city.slug}`}
+                            className="card p-4 hover:border-[var(--primary)]"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="flex-shrink-0">
+                                <div className="w-10 h-10 bg-[var(--secondary)] rounded-lg flex items-center justify-center">
+                                  <MapPin className="w-5 h-5 text-[var(--primary)]" />
+                                </div>
+                              </div>
+                              <div>
+                                <h3 className="font-medium text-[var(--foreground)]">{city.name}</h3>
+                                <p className="text-sm text-[var(--primary)]">
+                                  {city.church_count} church{city.church_count !== 1 ? 'es' : ''}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+
+                      {/* Pagination Controls */}
+                      {showPagination && (
+                        <div className="flex items-center justify-center gap-2 mt-6">
+                          {currentPage > 1 ? (
+                            <Link
+                              href={`/churches/${stateSlug}${currentPage === 2 ? '' : `?page=${currentPage - 1}`}`}
+                              className="flex items-center gap-1 px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] transition-colors"
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                              Previous
+                            </Link>
+                          ) : (
+                            <span className="flex items-center gap-1 px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--muted)] cursor-not-allowed">
+                              <ChevronLeft className="w-4 h-4" />
+                              Previous
+                            </span>
+                          )}
+
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                              // Show first, last, current, and neighbors
+                              const showPage =
+                                pageNum === 1 ||
+                                pageNum === totalPages ||
+                                Math.abs(pageNum - currentPage) <= 1;
+                              const showEllipsis =
+                                (pageNum === 2 && currentPage > 3) ||
+                                (pageNum === totalPages - 1 && currentPage < totalPages - 2);
+
+                              if (!showPage && !showEllipsis) return null;
+                              if (showEllipsis && !showPage) {
+                                return (
+                                  <span key={pageNum} className="px-2 text-[var(--muted)]">
+                                    ...
+                                  </span>
+                                );
+                              }
+
+                              return (
+                                <Link
+                                  key={pageNum}
+                                  href={`/churches/${stateSlug}${pageNum === 1 ? '' : `?page=${pageNum}`}`}
+                                  className={`px-3 py-2 rounded-lg transition-colors ${
+                                    pageNum === currentPage
+                                      ? 'bg-[var(--primary)] text-white'
+                                      : 'hover:bg-[var(--secondary)]'
+                                  }`}
+                                >
+                                  {pageNum}
+                                </Link>
+                              );
+                            })}
+                          </div>
+
+                          {currentPage < totalPages ? (
+                            <Link
+                              href={`/churches/${stateSlug}?page=${currentPage + 1}`}
+                              className="flex items-center gap-1 px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--secondary)] transition-colors"
+                            >
+                              Next
+                              <ChevronRight className="w-4 h-4" />
+                            </Link>
+                          ) : (
+                            <span className="flex items-center gap-1 px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--muted)] cursor-not-allowed">
+                              Next
+                              <ChevronRight className="w-4 h-4" />
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </>
             ) : (
               <div className="text-center py-12 bg-[var(--secondary)] rounded-lg">

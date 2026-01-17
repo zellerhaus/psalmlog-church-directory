@@ -66,13 +66,16 @@ CREATE INDEX IF NOT EXISTS idx_city_content_location ON city_content(city_slug, 
 CREATE INDEX IF NOT EXISTS idx_city_content_state ON city_content(state_abbr);
 
 -- Function to auto-update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path TO pg_catalog, public
+AS $$
 BEGIN
-  NEW.updated_at = NOW();
+  NEW.updated_at := NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Triggers for auto-updating timestamps
 DROP TRIGGER IF EXISTS update_state_content_updated_at ON state_content;

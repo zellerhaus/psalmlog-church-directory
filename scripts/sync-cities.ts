@@ -41,18 +41,38 @@ async function main() {
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-  // Get all churches
+  // Get all churches with pagination
   console.log('📊 Fetching churches...');
-  const { data: churches, error: churchError } = await supabase
-    .from('churches')
-    .select('city, state, state_abbr, lat, lng');
+  const churches: { city: string; state: string; state_abbr: string; lat: number | null; lng: number | null }[] = [];
+  const PAGE_SIZE = 1000; // Supabase default limit
+  let offset = 0;
+  let hasMore = true;
 
-  if (churchError || !churches) {
-    console.error('❌ Error fetching churches:', churchError);
-    process.exit(1);
+  while (hasMore) {
+    const { data, error } = await supabase
+      .from('churches')
+      .select('city, state, state_abbr, lat, lng')
+      .order('id', { ascending: true })
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) {
+      console.error('❌ Error fetching churches:', error);
+      process.exit(1);
+    }
+
+    if (data && data.length > 0) {
+      churches.push(...data);
+      offset += PAGE_SIZE;
+      process.stdout.write(`   Fetched ${churches.length.toLocaleString()} churches...\r`);
+      if (data.length < PAGE_SIZE) {
+        hasMore = false;
+      }
+    } else {
+      hasMore = false;
+    }
   }
 
-  console.log(`   Found ${churches.length} churches\n`);
+  console.log(`   Found ${churches.length.toLocaleString()} churches\n`);
 
   // Aggregate by city
   const cityMap = new Map<string, CityData & { lats: number[], lngs: number[] }>();
