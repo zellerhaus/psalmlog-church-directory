@@ -359,6 +359,10 @@ async function _getFeaturedCitiesWithRealCounts(limit: number): Promise<{ name: 
   // Aggregate by city+state
   const cityCounts = new Map<string, { name: string; state_abbr: string; state: string; count: number }>();
   for (const church of allData) {
+    // Skip entries with empty/missing city names
+    if (!church.city || church.city.trim() === '') {
+      continue;
+    }
     // Skip entries where city name matches a state name (data quality issue)
     if (STATE_NAMES_SET.has(church.city.toLowerCase())) {
       continue;

@@ -66,7 +66,7 @@ export default async function ChurchesHomePage() {
       {/* Hero Section - Dark navy Psalmlog style */}
       <section className="relative bg-[var(--primary)] text-[var(--primary-foreground)]">
         {/* Background Image with Dark Overlay */}
-        <div className="absolute inset-0 z-0 select-none overflow-hidden h-[600px] md:h-full">
+        <div className="absolute inset-0 z-0 select-none overflow-hidden">
           <img
             src="/churches/images/home-hero.png"
             alt="Church interior"
@@ -102,7 +102,7 @@ export default async function ChurchesHomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-[var(--secondary)]">
+      <section className="py-12 md:py-16 bg-[var(--secondary)]">
         <div className="container-page">
           <h2 className="sr-only">Why Use Psalmlog Church Finder</h2>
           <p className="section-label text-center mb-8" aria-hidden="true">Why Use Psalmlog Church Finder</p>
