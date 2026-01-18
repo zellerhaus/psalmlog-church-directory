@@ -105,6 +105,11 @@ const nextConfig: NextConfig = {
   // Rewrites for sitemap .xml extensions
   async rewrites() {
     return [
+      // Rewrite /churches/sitemaps/alabama/birmingham.xml to /churches/sitemaps/alabama/birmingham
+      {
+        source: '/churches/sitemaps/:state/:city.xml',
+        destination: '/churches/sitemaps/:state/:city',
+      },
       // Rewrite /churches/sitemaps/alabama.xml to /churches/sitemaps/alabama
       {
         source: '/churches/sitemaps/:state.xml',

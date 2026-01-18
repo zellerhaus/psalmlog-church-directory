@@ -1,11 +1,8 @@
 import { NextRequest } from 'next/server';
 import { SITE_URL, US_STATES } from '@/lib/constants';
-import { getChurchesForStateSitemap } from '@/lib/data';
+import { getCitiesWithChurchCounts } from '@/lib/data';
 
-// Maximum URLs per sitemap (Google recommends max 50,000)
-const MAX_URLS_PER_SITEMAP = 5000;
-
-// Generate XML sitemap for all churches in a specific state
+// Generate XML sitemap index for a state - lists city sitemaps
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ state: string }> }
@@ -18,37 +15,28 @@ export async function GET(
     return new Response('State not found', { status: 404 });
   }
 
-  const urls: string[] = [];
+  const sitemaps: string[] = [];
 
   try {
-    // Single efficient query to get all churches for this state
-    const churches = await getChurchesForStateSitemap(stateInfo.abbr, MAX_URLS_PER_SITEMAP);
+    // Get all cities in this state
+    const cities = await getCitiesWithChurchCounts(stateInfo.abbr);
 
-    for (const church of churches) {
-      const lastmod = church.updated_at
-        ? new Date(church.updated_at).toISOString()
-        : new Date().toISOString();
-
-      // Generate city slug from city name
-      const citySlug = church.city.toLowerCase().replace(/\s+/g, '-');
-
-      urls.push(`  <url>
-    <loc>${SITE_URL}/churches/${stateInfo.slug}/${citySlug}/${church.slug}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>`);
+    for (const city of cities) {
+      sitemaps.push(`  <sitemap>
+    <loc>${SITE_URL}/churches/sitemaps/${stateInfo.slug}/${city.slug}.xml</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+  </sitemap>`);
     }
   } catch {
-    // Database not available, return empty sitemap
+    // Database not available, return empty sitemap index
   }
 
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.join('\n')}
-</urlset>`;
+  const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemaps.join('\n')}
+</sitemapindex>`;
 
-  return new Response(sitemap, {
+  return new Response(sitemapIndex, {
     headers: {
       'Content-Type': 'application/xml',
       'Cache-Control': 'public, max-age=86400, stale-while-revalidate=43200',
