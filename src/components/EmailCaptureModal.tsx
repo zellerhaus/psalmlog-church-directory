@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, Fragment, useEffect } from 'react';
+import { useState, Fragment, useEffect, useRef } from 'react';
 import { X, Download, Check, Loader2 } from 'lucide-react';
+import Turnstile, { TurnstileRef } from './Turnstile';
 
 interface EmailCaptureModalProps {
   isOpen: boolean;
@@ -41,6 +42,8 @@ export default function EmailCaptureModal({ isOpen, onClose }: EmailCaptureModal
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileRef>(null);
   const [utmParams, setUtmParams] = useState<UtmParams>({
     utm_source: '',
     utm_medium: '',
@@ -64,6 +67,12 @@ export default function EmailCaptureModal({ isOpen, onClose }: EmailCaptureModal
       return;
     }
 
+    if (!turnstileToken) {
+      setErrorMessage('Please complete the verification');
+      setStatus('error');
+      return;
+    }
+
     setStatus('loading');
     setErrorMessage('');
 
@@ -75,18 +84,22 @@ export default function EmailCaptureModal({ isOpen, onClose }: EmailCaptureModal
           email,
           source: 'church_directory',
           page_url: currentPath,
+          turnstileToken,
           ...utmParams,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to subscribe');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to subscribe');
       }
 
       setStatus('success');
-    } catch {
+    } catch (err) {
       setStatus('error');
-      setErrorMessage('Something went wrong. Please try again.');
+      setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      turnstileRef.current?.reset();
+      setTurnstileToken(null);
     }
   };
 
@@ -171,10 +184,20 @@ export default function EmailCaptureModal({ isOpen, onClose }: EmailCaptureModal
                     className="w-full px-4 py-3 border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] outline-none"
                     disabled={status === 'loading'}
                   />
-                  {status === 'error' && (
-                    <p className="mt-2 text-sm text-red-600">{errorMessage}</p>
-                  )}
                 </div>
+
+                <div className="mb-4 flex justify-center">
+                  <Turnstile
+                    ref={turnstileRef}
+                    onVerify={setTurnstileToken}
+                    onExpire={() => setTurnstileToken(null)}
+                    onError={() => setTurnstileToken(null)}
+                  />
+                </div>
+
+                {status === 'error' && (
+                  <p className="mb-4 text-sm text-red-600 text-center">{errorMessage}</p>
+                )}
 
                 <button
                   type="submit"

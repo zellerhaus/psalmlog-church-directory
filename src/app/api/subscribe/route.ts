@@ -1,13 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+async function verifyTurnstileToken(token: string): Promise<boolean> {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+
+  if (!secretKey) {
+    console.warn('Turnstile secret key not configured, skipping verification');
+    return true;
+  }
+
+  const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      secret: secretKey,
+      response: token,
+    }),
+  });
+
+  const data = await response.json();
+  return data.success === true;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, source, page_url, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = body;
+    const { email, source, page_url, turnstileToken, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = body;
 
     if (!email || !email.includes('@')) {
       return NextResponse.json(
         { error: 'Invalid email address' },
+        { status: 400 }
+      );
+    }
+
+    // Verify Turnstile token
+    if (turnstileToken) {
+      const isValid = await verifyTurnstileToken(turnstileToken);
+      if (!isValid) {
+        return NextResponse.json(
+          { error: 'Verification failed. Please try again.' },
+          { status: 400 }
+        );
+      }
+    } else if (process.env.TURNSTILE_SECRET_KEY) {
+      // Token is required if Turnstile is configured
+      return NextResponse.json(
+        { error: 'Verification required' },
         { status: 400 }
       );
     }

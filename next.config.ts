@@ -58,11 +58,14 @@ const nextConfig: NextConfig = {
           {
             // Relaxed CSP to allow GTM to load third-party scripts dynamically
             // Security is maintained via frame-ancestors (clickjacking) and form-action
+            // Cloudflare Turnstile requires challenges.cloudflare.com for scripts and frames
             key: 'Content-Security-Policy',
             value: [
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
+              "frame-src https://challenges.cloudflare.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://www.googletagmanager.com",
             ].join('; '),
           },
         ],

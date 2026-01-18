@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, APP_STORE_URL, PLAY_STORE_URL } from "@/lib/constants";
+import CookieConsent from "@/components/CookieConsent";
 
 const workSans = Work_Sans({
   variable: "--font-work-sans",
@@ -138,6 +139,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </noscript>
         {/* End Google Tag Manager */}
         {children}
+        <CookieConsent />
         <Analytics />
         <SpeedInsights />
       </body>
