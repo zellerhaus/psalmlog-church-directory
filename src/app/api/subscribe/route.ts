@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, source } = body;
+    const { email, source, page_url, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = body;
 
     if (!email || !email.includes('@')) {
       return NextResponse.json(
@@ -17,18 +17,24 @@ export async function POST(request: NextRequest) {
     const customerIoApiKey = process.env.CUSTOMERIO_API_KEY;
 
     if (customerIoSiteId && customerIoApiKey) {
-      // Customer.io Track API
-      const response = await fetch('https://track.customer.io/api/v1/customers', {
-        method: 'PUT',
+      // Customer.io Forms API - creates person and triggers form_submit event
+      const response = await fetch('https://track.customer.io/api/v1/forms/visitor_guide_download/submit', {
+        method: 'POST',
         headers: {
           'Authorization': `Basic ${Buffer.from(`${customerIoSiteId}:${customerIoApiKey}`).toString('base64')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
-          created_at: Math.floor(Date.now() / 1000),
-          source: source || 'church_directory',
-          tags: ['church_directory', 'visitor_guide'],
+          data: {
+            email,
+            source: source || 'church_directory',
+            page_url: page_url || '',
+            utm_source: utm_source || '',
+            utm_medium: utm_medium || '',
+            utm_campaign: utm_campaign || '',
+            utm_term: utm_term || '',
+            utm_content: utm_content || '',
+          }
         }),
       });
 
@@ -38,7 +44,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Log for development
-      console.log('Email subscription:', { email, source });
+      console.log('Email subscription:', { email, source, page_url });
     }
 
     return NextResponse.json({ success: true });
