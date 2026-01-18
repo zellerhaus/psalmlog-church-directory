@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
+import FirstVisitGuideCTA from '@/components/FirstVisitGuideCTA';
 import SearchBox from '@/components/SearchBox';
 import FAQSection from '@/components/FAQSection';
 import LocationStats from '@/components/LocationStats';
@@ -370,8 +371,11 @@ export default async function StatePage({ params, searchParams }: StatePageProps
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <PsalmlogCTA variant="sidebar" campaign="state_page" />
+          <div className="lg:col-span-1 self-start">
+            <div className="flex flex-col gap-6 lg:sticky lg:top-24">
+              <FirstVisitGuideCTA variant="sidebar" />
+              <PsalmlogCTA variant="sidebar" campaign="state_page" />
+            </div>
           </div>
         </div>
 

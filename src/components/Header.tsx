@@ -90,6 +90,14 @@ export default function Header({ popularStates = [] }: HeaderProps) {
                 </div>
               </div>
             </div>
+            <Link
+              href="https://psalmlog.com/blog"
+              className="text-gray-600 hover:text-gray-900 font-medium"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Blog
+            </Link>
           </div>
 
           {/* Search and CTA */}

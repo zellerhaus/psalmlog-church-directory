@@ -565,21 +565,28 @@ export class OpenAILocationProvider implements AIProvider {
       .map((s) => `${s[0]} (${s[1]})`)
       .join(', ');
 
-    return `Generate SEO-friendly content for a church directory page about churches in ${stateName}.
+    // Format numbers with commas for the prompt
+    const churchCountFormatted = stats.church_count.toLocaleString();
+    const cityCountFormatted = stats.city_count?.toLocaleString() || '0';
 
-Statistics:
-- ${stats.church_count} total churches across ${stats.city_count} cities
+    return `Generate compelling, SEO-friendly content for a church directory page about churches in ${stateName}.
+
+EXACT Statistics (use these numbers precisely, do not round or approximate):
+- Total churches: ${churchCountFormatted} (exactly ${stats.church_count})
+- Total cities: ${cityCountFormatted} (exactly ${stats.city_count})
 - Top denominations: ${topDenoms || 'Various'}
 - Top worship styles: ${topStyles || 'Various'}
-- ${stats.programs.kids_ministry} churches with kids ministry (${Math.round((stats.programs.kids_ministry / stats.church_count) * 100)}%)
-- ${stats.programs.youth_group} with youth groups (${Math.round((stats.programs.youth_group / stats.church_count) * 100)}%)
-- ${stats.programs.small_groups} with small groups (${Math.round((stats.programs.small_groups / stats.church_count) * 100)}%)
+- Kids ministry: ${stats.programs.kids_ministry} churches (${Math.round((stats.programs.kids_ministry / stats.church_count) * 100)}%)
+- Youth groups: ${stats.programs.youth_group} churches (${Math.round((stats.programs.youth_group / stats.church_count) * 100)}%)
+- Small groups: ${stats.programs.small_groups} churches (${Math.round((stats.programs.small_groups / stats.church_count) * 100)}%)
+
+IMPORTANT: Use the EXACT numbers provided above. Do not round "1,247 cities" to "1,000 cities" or similar approximations.
 
 Return JSON with these fields:
 {
-  "overview": "2-3 paragraph introduction about the church landscape in ${stateName}. Use statistics naturally. Write for someone searching for a church. Do not start with 'Welcome to' or similar generic openings.",
-  "visitorGuide": "Practical tips for visiting churches in ${stateName}. Include dress code expectations, common service times, and cultural notes. 2-3 paragraphs. Be specific and helpful.",
-  "historicalContext": "Brief history of Christianity in ${stateName}, current religious demographics, and notable church traditions. 1-2 paragraphs. Focus on factual, interesting information."
+  "overview": "2-3 sentences introducing the Christian community in ${stateName}. Start with vivid, colorful language that captures the essence of faith in this state - reference the region's character, heritage, or unique religious landscape. Naturally weave in the exact statistics. Mention the diversity of denominations (${topDenoms ? topDenoms.split(',')[0] : 'Baptist'} leading, etc.) and family-friendly programs. Write for someone searching for a church home. Do NOT start with 'Welcome to' or generic openings - be creative and engaging.",
+  "visitorGuide": "Practical tips for visiting churches in ${stateName}. Include dress code expectations, common service times, and cultural notes specific to the region. 2-3 paragraphs. Be specific and helpful.",
+  "historicalContext": "Brief but vivid history of Christianity in ${stateName}. Include interesting facts about how faith shaped the state's development, notable religious movements or revivals, immigration patterns that influenced denominations, or unique local traditions. 1-2 paragraphs. Make it engaging and memorable, not dry or generic."
 }`;
   }
 
@@ -717,18 +724,26 @@ export class AnthropicLocationProvider implements AIProvider {
       .map((s) => `${s[0]} (${s[1]})`)
       .join(', ');
 
-    return `Generate SEO-friendly content for a church directory page about ${stateName}.
+    // Format numbers with commas for the prompt
+    const churchCountFormatted = stats.church_count.toLocaleString();
+    const cityCountFormatted = stats.city_count?.toLocaleString() || '0';
 
-Stats: ${stats.church_count} churches, ${stats.city_count} cities
-Top denominations: ${topDenoms || 'Various'}
-Worship styles: ${topStyles || 'Various'}
-Programs: ${stats.programs.kids_ministry} kids ministry, ${stats.programs.youth_group} youth, ${stats.programs.small_groups} small groups
+    return `Generate compelling content for a church directory page about ${stateName}.
+
+EXACT Statistics (use precisely, no rounding):
+- Churches: ${churchCountFormatted} (exactly ${stats.church_count})
+- Cities: ${cityCountFormatted} (exactly ${stats.city_count})
+- Denominations: ${topDenoms || 'Various'}
+- Worship styles: ${topStyles || 'Various'}
+- Programs: ${stats.programs.kids_ministry} kids ministry, ${stats.programs.youth_group} youth, ${stats.programs.small_groups} small groups
+
+CRITICAL: Use exact numbers. Never round (e.g., don't say "1,000 cities" if the number is 1,247).
 
 Return only valid JSON:
 {
-  "overview": "2-3 paragraphs about finding a church in ${stateName}",
-  "visitorGuide": "2-3 paragraphs with practical visitor tips",
-  "historicalContext": "1-2 paragraphs on religious history and culture"
+  "overview": "2-3 vivid sentences about ${stateName}'s Christian community. Start with colorful language capturing the state's faith heritage - its character, history, or religious landscape. Weave in exact statistics naturally. Mention denomination diversity and family programs. No generic 'Welcome to' openings.",
+  "visitorGuide": "2-3 paragraphs of practical visitor tips for ${stateName} churches - dress codes, service times, regional cultural notes.",
+  "historicalContext": "1-2 engaging paragraphs on Christianity's history in ${stateName}. Include interesting facts: how faith shaped the state, notable revivals, immigration influences on denominations, unique traditions. Make it memorable."
 }`;
   }
 

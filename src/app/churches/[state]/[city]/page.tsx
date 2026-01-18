@@ -6,6 +6,7 @@ import ChurchCard from '@/components/ChurchCard';
 import Filters from '@/components/Filters';
 import Pagination from '@/components/Pagination';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
+import FirstVisitGuideCTA from '@/components/FirstVisitGuideCTA';
 import FAQSection from '@/components/FAQSection';
 import LocationStats from '@/components/LocationStats';
 import { getCityBySlug, getChurchesByCity, getCityContent } from '@/lib/data';
@@ -354,8 +355,11 @@ export default async function CityPage({ params, searchParams }: CityPageProps) 
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <PsalmlogCTA variant="sidebar" campaign="city_page" />
+          <div className="lg:col-span-1 self-start">
+            <div className="flex flex-col gap-6 lg:sticky lg:top-24">
+              <FirstVisitGuideCTA variant="sidebar" />
+              <PsalmlogCTA variant="sidebar" campaign="city_page" />
+            </div>
           </div>
         </div>
 

@@ -5,7 +5,7 @@ import { PSALMLOG_LANDING_URL } from '@/lib/constants';
 
 export default async function Footer() {
   // Use a fixed year to avoid hydration mismatch near midnight/timezone boundaries
-  const currentYear = 2025;
+  const currentYear = 2026;
 
   // Fetch popular states from database
   const popularStates = await getPopularStates(4);
@@ -56,6 +56,16 @@ export default async function Footer() {
                   Try Psalmlog
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="https://psalmlog.com/blog"
+                  className="text-[var(--muted)] hover:text-[var(--foreground)] text-sm"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Blog
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -103,9 +113,29 @@ export default async function Footer() {
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-[var(--border)]">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-[var(--muted)] text-sm">
-              &copy; {currentYear} Psalmlog. All rights reserved.
-            </p>
+            <div className="flex items-center gap-4">
+              <p className="text-[var(--muted)] text-sm">
+                &copy; {currentYear} Psalmlog. All rights reserved.
+              </p>
+              <div className="flex items-center gap-3 text-sm">
+                <Link
+                  href="https://psalmlog.com/terms"
+                  className="text-[var(--muted)] hover:text-[var(--foreground)]"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Terms
+                </Link>
+                <Link
+                  href="https://psalmlog.com/privacy"
+                  className="text-[var(--muted)] hover:text-[var(--foreground)]"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Privacy
+                </Link>
+              </div>
+            </div>
             <p className="text-[var(--muted)] opacity-70 text-xs">
               Church information may be outdated. Please verify details with the church directly.
             </p>
