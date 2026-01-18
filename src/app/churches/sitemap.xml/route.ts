@@ -2,7 +2,7 @@ import { SITE_URL, US_STATES } from '@/lib/constants';
 import { getAllCitiesForSitemap } from '@/lib/data';
 
 // Map state abbreviation to state slug
-const stateAbbrToSlug = new Map(US_STATES.map((s) => [s.abbr, s.slug]));
+const stateAbbrToSlug = new Map<string, string>(US_STATES.map((s) => [s.abbr, s.slug]));
 
 // Generate XML sitemap index that references city-specific sitemaps
 export async function GET() {
