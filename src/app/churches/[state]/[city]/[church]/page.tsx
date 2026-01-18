@@ -15,7 +15,7 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
 import ChurchClientSection from '@/components/ChurchClientSection';
 import RelatedChurches from '@/components/RelatedChurches';
-import { US_STATES, SITE_URL, hasEnoughContent } from '@/lib/constants';
+import { US_STATES, SITE_URL, hasEnoughContent, addChurchUtmParams } from '@/lib/constants';
 import { getChurchBySlug, getRelatedChurches } from '@/lib/data';
 import type { Church, ServiceTime } from '@/types/database';
 
@@ -272,7 +272,7 @@ export default async function ChurchDetailPage({ params }: PageProps) {
                   <div className="flex items-center gap-3">
                     <Globe className="w-5 h-5 text-[var(--muted)]" />
                     <a
-                      href={church.website}
+                      href={addChurchUtmParams(church.website, 'contact_card')}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[var(--primary)] hover:text-[var(--primary-hover)] flex items-center gap-1"
@@ -296,7 +296,7 @@ export default async function ChurchDetailPage({ params }: PageProps) {
                 </a>
                 {church.website && (
                   <a
-                    href={church.website}
+                    href={addChurchUtmParams(church.website, 'action_button')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-secondary"
@@ -408,7 +408,7 @@ export default async function ChurchDetailPage({ params }: PageProps) {
                 </a>
                 {church.website && (
                   <a
-                    href={church.website}
+                    href={addChurchUtmParams(church.website, 'sidebar')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg hover:bg-[var(--border)] transition-colors"

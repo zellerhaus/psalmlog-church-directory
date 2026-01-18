@@ -126,3 +126,10 @@ export const PSALMLOG_URLS = {
   playStore: PLAY_STORE_URL,
   landing: PSALMLOG_LANDING_URL,
 } as const;
+
+// Append UTM parameters to church website URLs for tracking referrals
+export function addChurchUtmParams(url: string, content: string): string {
+  if (!url) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}utm_source=psalmlog.com&utm_medium=referral&utm_campaign=psalmlog&utm_content=${content}`;
+}
