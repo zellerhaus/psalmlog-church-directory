@@ -10,10 +10,10 @@ const STATE_NAMES_SET = new Set(
 );
 
 // Cache configuration
-const CACHE_REVALIDATE_SHORT = 1; // 1 second (temporarily reduced to force fresh data)
-const CACHE_REVALIDATE_MEDIUM = 1; // 1 second (temporarily reduced to force fresh data)
-const CACHE_REVALIDATE_LONG = 1; // 1 second (temporarily reduced to force fresh data)
-const CACHE_REVALIDATE_WEEK = 1; // 1 second (temporarily reduced to force fresh data)
+const CACHE_REVALIDATE_SHORT = 300; // 5 minutes
+const CACHE_REVALIDATE_MEDIUM = 3600; // 1 hour
+const CACHE_REVALIDATE_LONG = 86400; // 24 hours
+const CACHE_REVALIDATE_WEEK = 604800; // 1 week
 
 // Helper to safely handle Supabase errors during build
 function handleError(error: unknown, context: string): void {
