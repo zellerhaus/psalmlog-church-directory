@@ -110,11 +110,6 @@ const nextConfig: NextConfig = {
         source: '/churches/sitemaps/:state/:city.xml',
         destination: '/churches/sitemaps/:state/:city',
       },
-      // Rewrite /churches/sitemaps/alabama.xml to /churches/sitemaps/alabama
-      {
-        source: '/churches/sitemaps/:state.xml',
-        destination: '/churches/sitemaps/:state',
-      },
     ];
   },
 };
