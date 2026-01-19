@@ -59,4 +59,4 @@ Allow: /
 Crawl-delay: 1
 
 # Sitemap index for church directory (contains references to all chunked sitemaps)
-Sitemap: https://psalmlog.com/churches/sitemap.xml
+Sitemap: https://psalmlog.com/churches/sitemap_index.xml
