@@ -71,8 +71,18 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Sitemap - cache for 1 day
-        source: '/churches/sitemap.xml',
+        // Sitemap index - cache for 1 day
+        source: '/churches/sitemap_index.xml',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, stale-while-revalidate=43200',
+          },
+        ],
+      },
+      {
+        // Sitemap chunks - cache for 1 day
+        source: '/churches/sitemap:id(\\d+).xml',
         headers: [
           {
             key: 'Cache-Control',
@@ -108,10 +118,10 @@ const nextConfig: NextConfig = {
   // Rewrites for sitemap .xml extensions
   async rewrites() {
     return [
-      // Rewrite /churches/sitemaps/alabama/birmingham.xml to /churches/sitemaps/alabama/birmingham
+      // Rewrite /churches/sitemap1.xml, sitemap2.xml, etc. to /churches/sitemap-chunk/1, etc.
       {
-        source: '/churches/sitemaps/:state/:city.xml',
-        destination: '/churches/sitemaps/:state/:city',
+        source: '/churches/sitemap:id(\\d+).xml',
+        destination: '/churches/sitemap-chunk/:id',
       },
     ];
   },

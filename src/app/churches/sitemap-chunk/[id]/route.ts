@@ -99,17 +99,12 @@ async function getStaticUrls(): Promise<{ loc: string; priority: string; changef
 }
 
 // Generate XML sitemap for a specific chunk
-// URL pattern: /churches/sitemap1.xml, /churches/sitemap2.xml, etc.
-export async function GET(request: NextRequest) {
-  // Extract the ID from the URL path (e.g., sitemap1.xml -> 1)
-  const pathname = request.nextUrl.pathname;
-  const match = pathname.match(/sitemap(\d+)\.xml$/);
-
-  if (!match) {
-    return new Response('Invalid sitemap URL', { status: 400 });
-  }
-
-  const sitemapId = parseInt(match[1], 10);
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const sitemapId = parseInt(id, 10);
 
   if (isNaN(sitemapId) || sitemapId < 1) {
     return new Response('Invalid sitemap ID', { status: 400 });
