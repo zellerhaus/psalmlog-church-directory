@@ -638,6 +638,42 @@ export const getChurchesForStateSitemap = (stateAbbr: string, limit: number) =>
     { revalidate: CACHE_REVALIDATE_LONG, tags: ['churches-state-sitemap'] }
   )();
 
+// Sitemap chunk size (Google recommends max 50,000 URLs per sitemap)
+export const SITEMAP_CHUNK_SIZE = 50000;
+
+// Internal function to get all churches for sitemap with pagination
+async function _getChurchesForSitemapChunk(
+  offset: number,
+  limit: number
+): Promise<{ slug: string; city: string; state_abbr: string; updated_at: string }[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('churches')
+    .select('slug, city, state_abbr, updated_at')
+    .order('state_abbr')
+    .order('city')
+    .order('slug')
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    handleError(error, 'getChurchesForSitemapChunk');
+    return [];
+  }
+
+  return (data as { slug: string; city: string; state_abbr: string; updated_at: string }[]) || [];
+}
+
+// Get churches for a specific sitemap chunk (cached for 24 hours)
+export const getChurchesForSitemapChunk = (offset: number, limit: number) =>
+  unstable_cache(
+    () => _getChurchesForSitemapChunk(offset, limit),
+    ['churches-sitemap-chunk', String(offset), String(limit)],
+    { revalidate: CACHE_REVALIDATE_LONG, tags: ['churches-sitemap'] }
+  )();
+
 // Get nearby churches by coordinates
 export async function getNearbyChurches(
   lat: number,

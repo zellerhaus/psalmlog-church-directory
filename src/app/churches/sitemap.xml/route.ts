@@ -1,35 +1,35 @@
-import { SITE_URL, US_STATES } from '@/lib/constants';
-import { getAllCitiesForSitemap } from '@/lib/data';
+import { SITE_URL } from '@/lib/constants';
+import { getTotalChurchCount, getAllCitiesForSitemap, SITEMAP_CHUNK_SIZE } from '@/lib/data';
 
-// Map state abbreviation to state slug
-const stateAbbrToSlug = new Map<string, string>(US_STATES.map((s) => [s.abbr, s.slug]));
-
-// Generate XML sitemap index that references city-specific sitemaps
+// Generate XML sitemap index that references numbered chunk sitemaps
 export async function GET() {
   const sitemaps: string[] = [];
   const lastmod = new Date().toISOString();
 
-  // Add the locations sitemap first
-  sitemaps.push(`  <sitemap>
-    <loc>${SITE_URL}/churches/sitemap-locations.xml</loc>
-    <lastmod>${lastmod}</lastmod>
-  </sitemap>`);
-
   try {
-    // Get all cities across all states
-    const cities = await getAllCitiesForSitemap();
+    // Calculate total URLs to determine how many sitemaps we need
+    const totalChurches = await getTotalChurchCount();
+    const allCities = await getAllCitiesForSitemap();
 
-    for (const city of cities) {
-      const stateSlug = stateAbbrToSlug.get(city.state_abbr);
-      if (stateSlug) {
-        sitemaps.push(`  <sitemap>
-    <loc>${SITE_URL}/churches/sitemaps/${stateSlug}/${city.slug}.xml</loc>
+    // Static URLs: 1 (main) + 1 (denominations index) + 20 (denominations) +
+    //              1 (worship index) + 6 (worship styles) + 1 (programs index) + 3 (programs) +
+    //              51 (states) + cities count
+    const staticUrlCount = 1 + 1 + 20 + 1 + 6 + 1 + 3 + 51 + allCities.length;
+    const totalUrls = staticUrlCount + totalChurches;
+    const totalSitemaps = Math.ceil(totalUrls / SITEMAP_CHUNK_SIZE);
+
+    for (let i = 1; i <= totalSitemaps; i++) {
+      sitemaps.push(`  <sitemap>
+    <loc>${SITE_URL}/churches/sitemap/${i}</loc>
     <lastmod>${lastmod}</lastmod>
   </sitemap>`);
-      }
     }
   } catch {
-    // Database not available, return minimal sitemap
+    // Database not available, return single sitemap reference
+    sitemaps.push(`  <sitemap>
+    <loc>${SITE_URL}/churches/sitemap/1</loc>
+    <lastmod>${lastmod}</lastmod>
+  </sitemap>`);
   }
 
   const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
