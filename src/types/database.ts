@@ -16,6 +16,11 @@ export interface Database {
         Insert: Omit<State, 'id'>;
         Update: Partial<Omit<State, 'id'>>;
       };
+      church_claims: {
+        Row: ChurchClaim;
+        Insert: Omit<ChurchClaim, 'id' | 'created_at'>;
+        Update: Partial<Omit<ChurchClaim, 'id' | 'created_at'>>;
+      };
     };
     Views: {};
     Functions: {
@@ -122,4 +127,39 @@ export interface PaginatedResult<T> {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+// Church claim types
+export const CHURCH_ROLES = [
+  'Pastor',
+  'Associate Pastor',
+  'Administrator',
+  'Staff Member',
+  'Volunteer Leader',
+  'Board Member',
+  'Other',
+] as const;
+
+export type ChurchRole = (typeof CHURCH_ROLES)[number];
+
+export interface ChurchClaim {
+  id: string;
+  church_id: string;
+  church_name: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  role: ChurchRole;
+  role_description: string | null;
+  verification_info: string | null;
+  message: string | null;
+  page_url: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'needs_info';
+  admin_notes: string | null;
+  created_at: string;
 }

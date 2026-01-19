@@ -1,13 +1,11 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import {
   MapPin,
   Phone,
   Globe,
   Clock,
   Users,
-  ChevronRight,
   ExternalLink,
   Navigation,
 } from 'lucide-react';
@@ -15,6 +13,7 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
 import ChurchClientSection from '@/components/ChurchClientSection';
 import RelatedChurches from '@/components/RelatedChurches';
+import ChurchQuickActions from '@/components/ChurchQuickActions';
 import { US_STATES, SITE_URL, hasEnoughContent, addChurchUtmParams } from '@/lib/constants';
 import { getChurchBySlug, getRelatedChurches } from '@/lib/data';
 import type { Church, ServiceTime } from '@/types/database';
@@ -393,43 +392,13 @@ export default async function ChurchDetailPage({ params }: PageProps) {
             <PsalmlogCTA variant="sidebar" campaign="church_detail" />
 
             {/* Quick Actions */}
-            <div className="card p-6">
-              <h3 className="font-semibold mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <a
-                  href={googleMapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg hover:bg-[var(--border)] transition-colors"
-                >
-                  <Navigation className="w-5 h-5 text-[var(--muted)]" />
-                  <span className="font-medium">Get Directions</span>
-                  <ChevronRight className="w-4 h-4 text-[var(--muted)] ml-auto" />
-                </a>
-                {church.website && (
-                  <a
-                    href={addChurchUtmParams(church.website, 'sidebar')}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg hover:bg-[var(--border)] transition-colors"
-                  >
-                    <Globe className="w-5 h-5 text-[var(--muted)]" />
-                    <span className="font-medium">Visit Website</span>
-                    <ChevronRight className="w-4 h-4 text-[var(--muted)] ml-auto" />
-                  </a>
-                )}
-                {church.phone && (
-                  <a
-                    href={`tel:${church.phone}`}
-                    className="flex items-center gap-3 p-3 bg-[var(--secondary)] rounded-lg hover:bg-[var(--border)] transition-colors"
-                  >
-                    <Phone className="w-5 h-5 text-[var(--muted)]" />
-                    <span className="font-medium">Call Church</span>
-                    <ChevronRight className="w-4 h-4 text-[var(--muted)] ml-auto" />
-                  </a>
-                )}
-              </div>
-            </div>
+            <ChurchQuickActions
+              churchId={church.id}
+              churchName={church.name}
+              googleMapsUrl={googleMapsUrl}
+              website={church.website}
+              phone={church.phone}
+            />
 
             {/* Related Churches for internal linking */}
             <RelatedChurches churches={relatedChurches} currentCity={church.city} />
