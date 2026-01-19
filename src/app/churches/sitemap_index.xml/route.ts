@@ -20,14 +20,14 @@ export async function GET() {
 
     for (let i = 1; i <= totalSitemaps; i++) {
       sitemaps.push(`  <sitemap>
-    <loc>${SITE_URL}/churches/sitemap/${i}</loc>
+    <loc>${SITE_URL}/churches/sitemap${i}.xml</loc>
     <lastmod>${lastmod}</lastmod>
   </sitemap>`);
     }
   } catch {
     // Database not available, return single sitemap reference
     sitemaps.push(`  <sitemap>
-    <loc>${SITE_URL}/churches/sitemap/1</loc>
+    <loc>${SITE_URL}/churches/sitemap1.xml</loc>
     <lastmod>${lastmod}</lastmod>
   </sitemap>`);
   }
