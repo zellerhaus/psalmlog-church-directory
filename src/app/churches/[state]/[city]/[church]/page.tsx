@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import {
   MapPin,
   Phone,
@@ -13,9 +14,10 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
 import ChurchClientSection from '@/components/ChurchClientSection';
 import RelatedChurches from '@/components/RelatedChurches';
+import NearbyChurches from '@/components/NearbyChurches';
 import ChurchQuickActions from '@/components/ChurchQuickActions';
-import { US_STATES, SITE_URL, hasEnoughContent, addChurchUtmParams } from '@/lib/constants';
-import { getChurchBySlug, getRelatedChurches } from '@/lib/data';
+import { US_STATES, SITE_URL, hasEnoughContent, addChurchUtmParams, DENOMINATION_TO_SLUG, WORSHIP_STYLE_TO_SLUG } from '@/lib/constants';
+import { getChurchBySlug, getRelatedChurches, getNearbyChurches } from '@/lib/data';
 import type { Church, ServiceTime } from '@/types/database';
 
 interface PageProps {
@@ -189,8 +191,14 @@ export default async function ChurchDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch related churches for internal linking
+  // Fetch related churches for internal linking (same city/state)
   const relatedChurches = await getRelatedChurches(stateInfo.abbr, church.city, church.id, 4);
+
+  // Fetch nearby churches by geographic proximity (PostGIS)
+  let nearbyChurches: Church[] = [];
+  if (church.lat && church.lng) {
+    nearbyChurches = await getNearbyChurches(church.lat, church.lng, 10, 5);
+  }
 
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${church.name} ${church.address} ${church.city} ${church.state_abbr}`
@@ -220,12 +228,21 @@ export default async function ChurchDetailPage({ params }: PageProps) {
         <div className="mb-8">
           <div className="flex flex-wrap items-center gap-2 mb-2">
             {church.denomination && (
-              <span className="badge badge-primary">{church.denomination}</span>
+              <Link
+                href={`/churches/denominations/${DENOMINATION_TO_SLUG[church.denomination] || church.denomination.toLowerCase().replace(/\s+/g, '-')}`}
+                className="badge badge-primary hover:opacity-80 transition-opacity"
+              >
+                {church.denomination}
+              </Link>
             )}
             {church.worship_style?.map((style) => (
-              <span key={style} className="badge">
+              <Link
+                key={style}
+                href={`/churches/worship/${WORSHIP_STYLE_TO_SLUG[style] || style.toLowerCase().replace(/\s+/g, '-')}`}
+                className="badge hover:opacity-80 transition-opacity"
+              >
                 {style}
-              </span>
+              </Link>
             ))}
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-2 font-serif">
@@ -345,22 +362,31 @@ export default async function ChurchDetailPage({ params }: PageProps) {
                   </h2>
                   <div className="grid sm:grid-cols-3 gap-4">
                     {church.has_kids_ministry && (
-                      <div className="p-4 bg-emerald-50 rounded-lg text-center">
+                      <Link
+                        href="/churches/programs/kids-ministry"
+                        className="p-4 bg-emerald-50 rounded-lg text-center hover:bg-emerald-100 transition-colors"
+                      >
                         <Users className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
                         <p className="font-medium text-emerald-900">Kids Ministry</p>
-                      </div>
+                      </Link>
                     )}
                     {church.has_youth_group && (
-                      <div className="p-4 bg-blue-50 rounded-lg text-center">
+                      <Link
+                        href="/churches/programs/youth-group"
+                        className="p-4 bg-blue-50 rounded-lg text-center hover:bg-blue-100 transition-colors"
+                      >
                         <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                         <p className="font-medium text-blue-900">Youth Group</p>
-                      </div>
+                      </Link>
                     )}
                     {church.has_small_groups && (
-                      <div className="p-4 bg-purple-50 rounded-lg text-center">
+                      <Link
+                        href="/churches/programs/small-groups"
+                        className="p-4 bg-purple-50 rounded-lg text-center hover:bg-purple-100 transition-colors"
+                      >
                         <Users className="w-6 h-6 text-purple-600 mx-auto mb-2" />
                         <p className="font-medium text-purple-900">Small Groups</p>
-                      </div>
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -399,6 +425,15 @@ export default async function ChurchDetailPage({ params }: PageProps) {
               website={church.website}
               phone={church.phone}
             />
+
+            {/* Nearby Churches by geographic proximity */}
+            {nearbyChurches.length > 0 && (
+              <NearbyChurches
+                churches={nearbyChurches}
+                currentChurchId={church.id}
+                currentCity={church.city}
+              />
+            )}
 
             {/* Related Churches for internal linking */}
             <RelatedChurches churches={relatedChurches} currentCity={church.city} />

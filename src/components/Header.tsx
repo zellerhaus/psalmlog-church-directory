@@ -90,14 +90,80 @@ export default function Header({ popularStates = [] }: HeaderProps) {
                 </div>
               </div>
             </div>
-            <Link
-              href="https://psalmlog.com/blog"
-              className="text-gray-600 hover:text-gray-900 font-medium"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Blog
-            </Link>
+            <div className="relative group">
+              <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium">
+                Denominations
+                <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
+              </button>
+              {/* Dropdown Menu */}
+              <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div className="bg-white border border-[var(--border)] rounded-lg shadow-lg py-2 min-w-[200px]">
+                  <Link
+                    href="/churches/denominations/baptist"
+                    className="block px-4 py-2 text-gray-600 hover:bg-[var(--secondary)] hover:text-gray-900"
+                  >
+                    Baptist
+                  </Link>
+                  <Link
+                    href="/churches/denominations/catholic"
+                    className="block px-4 py-2 text-gray-600 hover:bg-[var(--secondary)] hover:text-gray-900"
+                  >
+                    Catholic
+                  </Link>
+                  <Link
+                    href="/churches/denominations/methodist"
+                    className="block px-4 py-2 text-gray-600 hover:bg-[var(--secondary)] hover:text-gray-900"
+                  >
+                    Methodist
+                  </Link>
+                  <Link
+                    href="/churches/denominations/non-denominational"
+                    className="block px-4 py-2 text-gray-600 hover:bg-[var(--secondary)] hover:text-gray-900"
+                  >
+                    Non-denominational
+                  </Link>
+                  <div className="border-t border-[var(--border)] my-2" />
+                  <Link
+                    href="/churches/denominations"
+                    className="block px-4 py-2 text-[var(--primary)] hover:bg-[var(--secondary)] font-medium"
+                  >
+                    View All Denominations
+                  </Link>
+                </div>
+              </div>
+            </div>
+            <div className="relative group">
+              <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium">
+                More
+                <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
+              </button>
+              {/* Dropdown Menu */}
+              <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div className="bg-white border border-[var(--border)] rounded-lg shadow-lg py-2 min-w-[200px]">
+                  <Link
+                    href="/churches/worship"
+                    className="block px-4 py-2 text-gray-600 hover:bg-[var(--secondary)] hover:text-gray-900"
+                  >
+                    By Worship Style
+                  </Link>
+                  <Link
+                    href="/churches/programs"
+                    className="block px-4 py-2 text-gray-600 hover:bg-[var(--secondary)] hover:text-gray-900"
+                  >
+                    By Programs
+                  </Link>
+                  <div className="border-t border-[var(--border)] my-2" />
+                  <Link
+                    href="https://psalmlog.com/blog"
+                    className="block px-4 py-2 text-gray-600 hover:bg-[var(--secondary)] hover:text-gray-900"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Blog
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Search and CTA */}
@@ -182,6 +248,27 @@ export default function Header({ popularStates = [] }: HeaderProps) {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Browse by State
+              </Link>
+              <Link
+                href="/churches/denominations"
+                className="text-gray-600 hover:text-gray-900 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Browse by Denomination
+              </Link>
+              <Link
+                href="/churches/worship"
+                className="text-gray-600 hover:text-gray-900 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Browse by Worship Style
+              </Link>
+              <Link
+                href="/churches/programs"
+                className="text-gray-600 hover:text-gray-900 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Browse by Program
               </Link>
               <form onSubmit={handleSearch} className="flex gap-2">
                 <input

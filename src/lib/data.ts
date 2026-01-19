@@ -777,3 +777,497 @@ export const getCityContent = (stateAbbr: string, citySlug: string) =>
     ['city-content', stateAbbr, citySlug],
     { revalidate: CACHE_REVALIDATE_WEEK, tags: ['city-content', `city-content-${stateAbbr}-${citySlug}`] }
   )();
+
+// ============================================================================
+// DENOMINATION & WORSHIP STYLE PAGES
+// ============================================================================
+
+// Internal function to get churches by denomination with pagination
+async function _getChurchesByDenomination(
+  denomination: string,
+  page: number = 1,
+  pageSize: number = DEFAULT_PAGE_SIZE
+): Promise<PaginatedResult<Church>> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase
+    .from('churches')
+    .select('*', { count: 'exact' })
+    .eq('denomination', denomination)
+    .order('state_abbr')
+    .order('city')
+    .order('name')
+    .range(from, to);
+
+  if (error) {
+    handleError(error, 'getChurchesByDenomination');
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+
+  return {
+    data: data || [],
+    total: count || 0,
+    page,
+    pageSize,
+    totalPages: Math.ceil((count || 0) / pageSize),
+  };
+}
+
+// Get churches by denomination with pagination (cached for 1 week)
+export const getChurchesByDenomination = (
+  denomination: string,
+  page: number = 1,
+  pageSize: number = DEFAULT_PAGE_SIZE
+) =>
+  unstable_cache(
+    () => _getChurchesByDenomination(denomination, page, pageSize),
+    ['churches-by-denomination', denomination, String(page), String(pageSize)],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['churches', `denomination-${denomination.toLowerCase().replace(/\s+/g, '-')}`] }
+  )();
+
+// Internal function to get denomination stats by state
+async function _getDenominationStatsByState(denomination: string): Promise<{ state_abbr: string; state: string; count: number }[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  // Fetch all churches with this denomination and aggregate by state
+  const allData: { state_abbr: string; state: string }[] = [];
+  let offset = 0;
+  const batchSize = 1000;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('churches')
+      .select('state_abbr, state')
+      .eq('denomination', denomination)
+      .range(offset, offset + batchSize - 1);
+
+    if (error) {
+      handleError(error, 'getDenominationStatsByState');
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      break;
+    }
+
+    allData.push(...(data as { state_abbr: string; state: string }[]));
+
+    if (data.length < batchSize) {
+      break;
+    }
+
+    offset += batchSize;
+  }
+
+  // Aggregate by state
+  const stateCounts = new Map<string, { state_abbr: string; state: string; count: number }>();
+  for (const church of allData) {
+    const existing = stateCounts.get(church.state_abbr);
+    if (existing) {
+      existing.count++;
+    } else {
+      stateCounts.set(church.state_abbr, {
+        state_abbr: church.state_abbr,
+        state: church.state || church.state_abbr,
+        count: 1,
+      });
+    }
+  }
+
+  return Array.from(stateCounts.values()).sort((a, b) => b.count - a.count);
+}
+
+// Get denomination stats by state (cached for 1 week)
+export const getDenominationStatsByState = (denomination: string) =>
+  unstable_cache(
+    () => _getDenominationStatsByState(denomination),
+    ['denomination-stats-by-state', denomination],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['denomination-stats', `denomination-${denomination.toLowerCase().replace(/\s+/g, '-')}`] }
+  )();
+
+// Internal function to get churches by worship style with pagination
+async function _getChurchesByWorshipStyle(
+  worshipStyle: string,
+  page: number = 1,
+  pageSize: number = DEFAULT_PAGE_SIZE
+): Promise<PaginatedResult<Church>> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase
+    .from('churches')
+    .select('*', { count: 'exact' })
+    .contains('worship_style', [worshipStyle])
+    .order('state_abbr')
+    .order('city')
+    .order('name')
+    .range(from, to);
+
+  if (error) {
+    handleError(error, 'getChurchesByWorshipStyle');
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+
+  return {
+    data: data || [],
+    total: count || 0,
+    page,
+    pageSize,
+    totalPages: Math.ceil((count || 0) / pageSize),
+  };
+}
+
+// Get churches by worship style with pagination (cached for 1 week)
+export const getChurchesByWorshipStyle = (
+  worshipStyle: string,
+  page: number = 1,
+  pageSize: number = DEFAULT_PAGE_SIZE
+) =>
+  unstable_cache(
+    () => _getChurchesByWorshipStyle(worshipStyle, page, pageSize),
+    ['churches-by-worship-style', worshipStyle, String(page), String(pageSize)],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['churches', `worship-style-${worshipStyle.toLowerCase()}`] }
+  )();
+
+// Internal function to get worship style stats by state
+async function _getWorshipStyleStatsByState(worshipStyle: string): Promise<{ state_abbr: string; state: string; count: number }[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  // Fetch all churches with this worship style and aggregate by state
+  const allData: { state_abbr: string; state: string }[] = [];
+  let offset = 0;
+  const batchSize = 1000;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('churches')
+      .select('state_abbr, state')
+      .contains('worship_style', [worshipStyle])
+      .range(offset, offset + batchSize - 1);
+
+    if (error) {
+      handleError(error, 'getWorshipStyleStatsByState');
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      break;
+    }
+
+    allData.push(...(data as { state_abbr: string; state: string }[]));
+
+    if (data.length < batchSize) {
+      break;
+    }
+
+    offset += batchSize;
+  }
+
+  // Aggregate by state
+  const stateCounts = new Map<string, { state_abbr: string; state: string; count: number }>();
+  for (const church of allData) {
+    const existing = stateCounts.get(church.state_abbr);
+    if (existing) {
+      existing.count++;
+    } else {
+      stateCounts.set(church.state_abbr, {
+        state_abbr: church.state_abbr,
+        state: church.state || church.state_abbr,
+        count: 1,
+      });
+    }
+  }
+
+  return Array.from(stateCounts.values()).sort((a, b) => b.count - a.count);
+}
+
+// Get worship style stats by state (cached for 1 week)
+export const getWorshipStyleStatsByState = (worshipStyle: string) =>
+  unstable_cache(
+    () => _getWorshipStyleStatsByState(worshipStyle),
+    ['worship-style-stats-by-state', worshipStyle],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['worship-style-stats', `worship-style-${worshipStyle.toLowerCase()}`] }
+  )();
+
+// Internal function to get total church count by denomination
+async function _getChurchCountByDenomination(denomination: string): Promise<number> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return 0;
+  }
+
+  const { count, error } = await supabase
+    .from('churches')
+    .select('*', { count: 'exact', head: true })
+    .eq('denomination', denomination);
+
+  if (error) {
+    handleError(error, 'getChurchCountByDenomination');
+    return 0;
+  }
+  return count || 0;
+}
+
+// Get church count by denomination (cached for 1 week)
+export const getChurchCountByDenomination = (denomination: string) =>
+  unstable_cache(
+    () => _getChurchCountByDenomination(denomination),
+    ['church-count-by-denomination', denomination],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['church-counts', `denomination-${denomination.toLowerCase().replace(/\s+/g, '-')}`] }
+  )();
+
+// Internal function to get total church count by worship style
+async function _getChurchCountByWorshipStyle(worshipStyle: string): Promise<number> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return 0;
+  }
+
+  const { count, error } = await supabase
+    .from('churches')
+    .select('*', { count: 'exact', head: true })
+    .contains('worship_style', [worshipStyle]);
+
+  if (error) {
+    handleError(error, 'getChurchCountByWorshipStyle');
+    return 0;
+  }
+  return count || 0;
+}
+
+// Get church count by worship style (cached for 1 week)
+export const getChurchCountByWorshipStyle = (worshipStyle: string) =>
+  unstable_cache(
+    () => _getChurchCountByWorshipStyle(worshipStyle),
+    ['church-count-by-worship-style', worshipStyle],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['church-counts', `worship-style-${worshipStyle.toLowerCase()}`] }
+  )();
+
+// ============================================================================
+// PROGRAM/MINISTRY PAGES
+// ============================================================================
+
+// Internal function to get churches by program with pagination
+async function _getChurchesByProgram(
+  programField: 'has_kids_ministry' | 'has_youth_group' | 'has_small_groups',
+  page: number = 1,
+  pageSize: number = DEFAULT_PAGE_SIZE
+): Promise<PaginatedResult<Church>> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase
+    .from('churches')
+    .select('*', { count: 'exact' })
+    .eq(programField, true)
+    .order('state_abbr')
+    .order('city')
+    .order('name')
+    .range(from, to);
+
+  if (error) {
+    handleError(error, 'getChurchesByProgram');
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+
+  return {
+    data: data || [],
+    total: count || 0,
+    page,
+    pageSize,
+    totalPages: Math.ceil((count || 0) / pageSize),
+  };
+}
+
+// Get churches by program with pagination (cached for 1 week)
+export const getChurchesByProgram = (
+  programField: 'has_kids_ministry' | 'has_youth_group' | 'has_small_groups',
+  page: number = 1,
+  pageSize: number = DEFAULT_PAGE_SIZE
+) =>
+  unstable_cache(
+    () => _getChurchesByProgram(programField, page, pageSize),
+    ['churches-by-program', programField, String(page), String(pageSize)],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['churches', `program-${programField}`] }
+  )();
+
+// Internal function to get program stats by state
+async function _getProgramStatsByState(programField: 'has_kids_ministry' | 'has_youth_group' | 'has_small_groups'): Promise<{ state_abbr: string; state: string; count: number }[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  // Fetch all churches with this program and aggregate by state
+  const allData: { state_abbr: string; state: string }[] = [];
+  let offset = 0;
+  const batchSize = 1000;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('churches')
+      .select('state_abbr, state')
+      .eq(programField, true)
+      .range(offset, offset + batchSize - 1);
+
+    if (error) {
+      handleError(error, 'getProgramStatsByState');
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      break;
+    }
+
+    allData.push(...(data as { state_abbr: string; state: string }[]));
+
+    if (data.length < batchSize) {
+      break;
+    }
+
+    offset += batchSize;
+  }
+
+  // Aggregate by state
+  const stateCounts = new Map<string, { state_abbr: string; state: string; count: number }>();
+  for (const church of allData) {
+    const existing = stateCounts.get(church.state_abbr);
+    if (existing) {
+      existing.count++;
+    } else {
+      stateCounts.set(church.state_abbr, {
+        state_abbr: church.state_abbr,
+        state: church.state || church.state_abbr,
+        count: 1,
+      });
+    }
+  }
+
+  return Array.from(stateCounts.values()).sort((a, b) => b.count - a.count);
+}
+
+// Get program stats by state (cached for 1 week)
+export const getProgramStatsByState = (programField: 'has_kids_ministry' | 'has_youth_group' | 'has_small_groups') =>
+  unstable_cache(
+    () => _getProgramStatsByState(programField),
+    ['program-stats-by-state', programField],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['program-stats', `program-${programField}`] }
+  )();
+
+// Internal function to get total church count by program
+async function _getChurchCountByProgram(programField: 'has_kids_ministry' | 'has_youth_group' | 'has_small_groups'): Promise<number> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return 0;
+  }
+
+  const { count, error } = await supabase
+    .from('churches')
+    .select('*', { count: 'exact', head: true })
+    .eq(programField, true);
+
+  if (error) {
+    handleError(error, 'getChurchCountByProgram');
+    return 0;
+  }
+  return count || 0;
+}
+
+// Get church count by program (cached for 1 week)
+export const getChurchCountByProgram = (programField: 'has_kids_ministry' | 'has_youth_group' | 'has_small_groups') =>
+  unstable_cache(
+    () => _getChurchCountByProgram(programField),
+    ['church-count-by-program', programField],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['church-counts', `program-${programField}`] }
+  )();
+
+// Get worship style stats (count for each style)
+async function _getWorshipStyleCounts(): Promise<{ style: string; count: number }[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('churches')
+    .select('worship_style')
+    .not('worship_style', 'is', null);
+
+  if (error) {
+    handleError(error, 'getWorshipStyleCounts');
+    return [];
+  }
+
+  // Count occurrences of each worship style (worship_style is an array)
+  const counts = new Map<string, number>();
+  for (const row of (data || []) as { worship_style: string[] | null }[]) {
+    const styles = row.worship_style;
+    if (styles && Array.isArray(styles)) {
+      for (const style of styles) {
+        if (style) {
+          counts.set(style, (counts.get(style) || 0) + 1);
+        }
+      }
+    }
+  }
+
+  // Convert to array and sort by count
+  return Array.from(counts.entries())
+    .map(([style, count]) => ({ style, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export const getWorshipStyleCounts = unstable_cache(
+  _getWorshipStyleCounts,
+  ['worship-style-counts'],
+  { revalidate: CACHE_REVALIDATE_WEEK, tags: ['church-counts'] }
+);
+
+// Get program counts (count for each program type)
+async function _getProgramCounts(): Promise<{ program: string; field: 'has_kids_ministry' | 'has_youth_group' | 'has_small_groups'; count: number }[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  const programs: { program: string; field: 'has_kids_ministry' | 'has_youth_group' | 'has_small_groups' }[] = [
+    { program: 'Kids Ministry', field: 'has_kids_ministry' },
+    { program: 'Youth Group', field: 'has_youth_group' },
+    { program: 'Small Groups', field: 'has_small_groups' },
+  ];
+
+  const results: { program: string; field: 'has_kids_ministry' | 'has_youth_group' | 'has_small_groups'; count: number }[] = [];
+
+  for (const p of programs) {
+    const { count, error } = await supabase
+      .from('churches')
+      .select('*', { count: 'exact', head: true })
+      .eq(p.field, true);
+
+    if (error) {
+      handleError(error, `getProgramCounts:${p.field}`);
+      results.push({ ...p, count: 0 });
+    } else {
+      results.push({ ...p, count: count || 0 });
+    }
+  }
+
+  return results.sort((a, b) => b.count - a.count);
+}
+
+export const getProgramCounts = unstable_cache(
+  _getProgramCounts,
+  ['program-counts'],
+  { revalidate: CACHE_REVALIDATE_WEEK, tags: ['church-counts'] }
+);

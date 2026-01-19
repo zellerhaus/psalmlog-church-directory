@@ -1,12 +1,13 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { MapPin, Church, Users, Search as SearchIcon, Heart, Music, Baby, BookOpen, BarChart3 } from 'lucide-react';
+import { MapPin, Church, Users, Search as SearchIcon, Heart, Music, Baby, BookOpen, BarChart3, ChevronRight } from 'lucide-react';
 import SearchBox from '@/components/SearchBox';
+import NearMeButton from '@/components/NearMeButton';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
 import FirstVisitGuideCTA from '@/components/FirstVisitGuideCTA';
 import HomeFAQSection from '@/components/HomeFAQSection';
-import { getTotalChurchCount, getFeaturedCitiesWithRealCounts, getDenominationStats } from '@/lib/data';
-import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, US_STATES } from '@/lib/constants';
+import { getTotalChurchCount, getFeaturedCitiesWithRealCounts, getDenominationStats, getWorshipStyleCounts, getProgramCounts } from '@/lib/data';
+import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, US_STATES, DENOMINATION_TO_SLUG, WORSHIP_STYLE_TO_SLUG } from '@/lib/constants';
 
 // Revalidate the page every hour (ISR)
 export const revalidate = 3600;
@@ -42,12 +43,16 @@ export default async function ChurchesHomePage() {
   let totalChurches = 0;
   let featuredCities: { name: string; state_abbr: string; slug: string; state: string; church_count: number }[] = [];
   let denominationStats: { denomination: string; count: number }[] = [];
+  let worshipStyleStats: { style: string; count: number }[] = [];
+  let programStats: { program: string; field: 'has_kids_ministry' | 'has_youth_group' | 'has_small_groups'; count: number }[] = [];
 
   try {
-    [totalChurches, featuredCities, denominationStats] = await Promise.all([
+    [totalChurches, featuredCities, denominationStats, worshipStyleStats, programStats] = await Promise.all([
       getTotalChurchCount(),
       getFeaturedCitiesWithRealCounts(18),
-      getDenominationStats(5),
+      getDenominationStats(8),
+      getWorshipStyleCounts(),
+      getProgramCounts(),
     ]);
   } catch {
     // Use defaults if database not connected
@@ -90,6 +95,9 @@ export default async function ChurchesHomePage() {
                 placeholder="Search by city or zip code..."
                 size="large"
               />
+              <div className="mt-4 flex justify-center">
+                <NearMeButton variant="secondary" />
+              </div>
             </div>
 
             {totalChurches > 0 && (
@@ -138,6 +146,127 @@ export default async function ChurchesHomePage() {
         </div>
       </section>
 
+      {/* Churches Near Me Section */}
+      <section className="py-16">
+        <div className="container-page">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="section-label text-center mb-3">Quick Start</p>
+            <h2 className="text-2xl font-bold text-center mb-4 font-serif">
+              Find Churches Near You
+            </h2>
+            <p className="text-[var(--muted)] mb-8 max-w-xl mx-auto">
+              Use your location to instantly find churches in your area. We&apos;ll show you the closest churches with service times, visitor info, and directions.
+            </p>
+            <NearMeButton variant="primary" className="mx-auto" />
+          </div>
+        </div>
+      </section>
+
+      {/* Browse By Section - Denomination, Worship Style, Programs */}
+      <section className="py-16 bg-[var(--secondary)]">
+        <div className="container-page">
+          <p className="section-label text-center mb-3">Find Your Fit</p>
+          <h2 className="text-2xl font-bold text-center mb-4 font-serif">
+            Browse Churches By
+          </h2>
+          <p className="text-center text-[var(--muted)] mb-10 max-w-2xl mx-auto">
+            Discover churches that match your beliefs, worship preferences, and family needs.
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Browse by Denomination */}
+            <div className="card p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[var(--secondary)] rounded-lg flex items-center justify-center">
+                  <Church className="w-5 h-5 text-[var(--primary)]" />
+                </div>
+                <h3 className="font-semibold text-lg font-serif">By Denomination</h3>
+              </div>
+              <ul className="space-y-2 mb-4">
+                {denominationStats.slice(0, 6).map((stat) => (
+                  <li key={stat.denomination}>
+                    <Link
+                      href={`/churches/denominations/${DENOMINATION_TO_SLUG[stat.denomination] || stat.denomination.toLowerCase().replace(/\s+/g, '-')}`}
+                      className="flex items-center justify-between text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                    >
+                      <span>{stat.denomination}</span>
+                      <span className="text-xs">{stat.count.toLocaleString()}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/churches/denominations"
+                className="flex items-center gap-1 text-sm font-medium text-[var(--primary)] hover:underline"
+              >
+                View all denominations
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Browse by Worship Style */}
+            <div className="card p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[var(--secondary)] rounded-lg flex items-center justify-center">
+                  <Music className="w-5 h-5 text-[var(--primary)]" />
+                </div>
+                <h3 className="font-semibold text-lg font-serif">By Worship Style</h3>
+              </div>
+              <ul className="space-y-2 mb-4">
+                {worshipStyleStats.slice(0, 6).map((stat) => (
+                  <li key={stat.style}>
+                    <Link
+                      href={`/churches/worship/${WORSHIP_STYLE_TO_SLUG[stat.style] || stat.style.toLowerCase().replace(/\s+/g, '-')}`}
+                      className="flex items-center justify-between text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                    >
+                      <span>{stat.style}</span>
+                      <span className="text-xs">{stat.count.toLocaleString()}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/churches/worship"
+                className="flex items-center gap-1 text-sm font-medium text-[var(--primary)] hover:underline"
+              >
+                View all worship styles
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Browse by Program */}
+            <div className="card p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[var(--secondary)] rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-[var(--primary)]" />
+                </div>
+                <h3 className="font-semibold text-lg font-serif">By Program</h3>
+              </div>
+              <ul className="space-y-2 mb-4">
+                {programStats.map((stat) => (
+                  <li key={stat.field}>
+                    <Link
+                      href={`/churches/programs/${stat.field === 'has_kids_ministry' ? 'kids-ministry' : stat.field === 'has_youth_group' ? 'youth-group' : 'small-groups'}`}
+                      className="flex items-center justify-between text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                    >
+                      <span>{stat.program}</span>
+                      <span className="text-xs">{stat.count.toLocaleString()}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/churches/programs"
+                className="flex items-center gap-1 text-sm font-medium text-[var(--primary)] hover:underline"
+              >
+                View all programs
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Featured Cities */}
       {featuredCities.length > 0 && (
         <section className="py-16">
@@ -151,7 +280,7 @@ export default async function ChurchesHomePage() {
                 <Link
                   key={`${city.slug}-${city.state_abbr}`}
                   href={`/churches/${city.state.toLowerCase().replace(/\s+/g, '-')}/${city.slug}`}
-                  className="card p-4 text-center hover:border-[var(--primary)] hover:border-opacity-30"
+                  className="card p-4 text-center hover:border-[var(--primary)]"
                 >
                   <div className="flex items-center justify-center gap-1 text-[var(--muted)] mb-1">
                     <MapPin className="w-4 h-4" />

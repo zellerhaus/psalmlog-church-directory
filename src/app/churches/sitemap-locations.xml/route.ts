@@ -1,7 +1,7 @@
-import { SITE_URL, US_STATES } from '@/lib/constants';
+import { SITE_URL, US_STATES, getDenominationSlugs, getWorshipStyleSlugs, getProgramSlugs } from '@/lib/constants';
 import { getAllCitiesForSitemap } from '@/lib/data';
 
-// Generate XML sitemap for states and cities
+// Generate XML sitemap for states, cities, denominations, and worship styles
 export async function GET() {
   const urls: string[] = [];
   const lastmod = new Date().toISOString();
@@ -13,6 +13,60 @@ export async function GET() {
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>`);
+
+  // Denominations index page
+  urls.push(`  <url>
+    <loc>${SITE_URL}/churches/denominations</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>`);
+
+  // All denomination pages
+  for (const denominationSlug of getDenominationSlugs()) {
+    urls.push(`  <url>
+    <loc>${SITE_URL}/churches/denominations/${denominationSlug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`);
+  }
+
+  // Worship styles index page
+  urls.push(`  <url>
+    <loc>${SITE_URL}/churches/worship</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>`);
+
+  // All worship style pages
+  for (const styleSlug of getWorshipStyleSlugs()) {
+    urls.push(`  <url>
+    <loc>${SITE_URL}/churches/worship/${styleSlug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`);
+  }
+
+  // Programs index page
+  urls.push(`  <url>
+    <loc>${SITE_URL}/churches/programs</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>`);
+
+  // All program pages
+  for (const programSlug of getProgramSlugs()) {
+    urls.push(`  <url>
+    <loc>${SITE_URL}/churches/programs/${programSlug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`);
+  }
 
   // All state pages
   for (const state of US_STATES) {

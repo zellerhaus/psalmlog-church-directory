@@ -22,6 +22,40 @@ export const DENOMINATIONS = [
   'Other',
 ] as const;
 
+// Denomination slugs for URL routing
+export const DENOMINATION_SLUGS: Record<string, string> = {
+  'non-denominational': 'Non-denominational',
+  'baptist': 'Baptist',
+  'southern-baptist': 'Southern Baptist',
+  'catholic': 'Catholic',
+  'methodist': 'Methodist',
+  'united-methodist': 'United Methodist',
+  'lutheran': 'Lutheran',
+  'presbyterian': 'Presbyterian',
+  'pentecostal': 'Pentecostal',
+  'assemblies-of-god': 'Assemblies of God',
+  'church-of-christ': 'Church of Christ',
+  'episcopal': 'Episcopal',
+  'church-of-god': 'Church of God',
+  'nazarene': 'Nazarene',
+  'seventh-day-adventist': 'Seventh-day Adventist',
+  'orthodox': 'Orthodox',
+  'evangelical': 'Evangelical',
+  'charismatic': 'Charismatic',
+  'reformed': 'Reformed',
+  'other': 'Other',
+};
+
+// Reverse mapping: denomination name to slug
+export const DENOMINATION_TO_SLUG: Record<string, string> = Object.fromEntries(
+  Object.entries(DENOMINATION_SLUGS).map(([slug, name]) => [name, slug])
+);
+
+// Get all denomination slugs for static generation
+export function getDenominationSlugs(): string[] {
+  return Object.keys(DENOMINATION_SLUGS);
+}
+
 // Worship style options
 export const WORSHIP_STYLES = [
   'Contemporary',
@@ -31,6 +65,46 @@ export const WORSHIP_STYLES = [
   'Gospel',
   'Charismatic',
 ] as const;
+
+// Worship style slugs for URL routing
+export const WORSHIP_STYLE_SLUGS: Record<string, string> = {
+  'contemporary': 'Contemporary',
+  'traditional': 'Traditional',
+  'blended': 'Blended',
+  'liturgical': 'Liturgical',
+  'gospel': 'Gospel',
+  'charismatic': 'Charismatic',
+};
+
+// Reverse mapping: worship style name to slug
+export const WORSHIP_STYLE_TO_SLUG: Record<string, string> = Object.fromEntries(
+  Object.entries(WORSHIP_STYLE_SLUGS).map(([slug, name]) => [name, slug])
+);
+
+// Get all worship style slugs for static generation
+export function getWorshipStyleSlugs(): string[] {
+  return Object.keys(WORSHIP_STYLE_SLUGS);
+}
+
+// Church programs/ministries
+export const CHURCH_PROGRAMS = [
+  { slug: 'kids-ministry', name: 'Kids Ministry', field: 'has_kids_ministry' as const },
+  { slug: 'youth-group', name: 'Youth Group', field: 'has_youth_group' as const },
+  { slug: 'small-groups', name: 'Small Groups', field: 'has_small_groups' as const },
+] as const;
+
+export type ChurchProgramSlug = typeof CHURCH_PROGRAMS[number]['slug'];
+export type ChurchProgramField = typeof CHURCH_PROGRAMS[number]['field'];
+
+// Program slug to info mapping
+export const PROGRAM_SLUGS: Record<string, { name: string; field: ChurchProgramField }> = Object.fromEntries(
+  CHURCH_PROGRAMS.map((p) => [p.slug, { name: p.name, field: p.field }])
+);
+
+// Get all program slugs for static generation
+export function getProgramSlugs(): string[] {
+  return CHURCH_PROGRAMS.map((p) => p.slug);
+}
 
 // US States
 export const US_STATES = [

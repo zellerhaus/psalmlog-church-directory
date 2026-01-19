@@ -13,7 +13,7 @@ export default async function Footer() {
   return (
     <footer className="bg-[var(--secondary)] border-t border-[var(--border)]">
       <div className="container-page py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           {/* Brand */}
           <div className="md:col-span-2">
             <Link href="/churches" className="flex items-center gap-2 mb-4">
@@ -64,6 +64,38 @@ export default async function Footer() {
                   rel="noopener noreferrer"
                 >
                   Blog
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Browse By */}
+          <div>
+            <h3 className="font-semibold text-[var(--foreground)] mb-4">Browse By</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/churches/denominations" className="text-[var(--muted)] hover:text-[var(--foreground)] text-sm">
+                  Denominations
+                </Link>
+              </li>
+              <li>
+                <Link href="/churches/worship" className="text-[var(--muted)] hover:text-[var(--foreground)] text-sm">
+                  Worship Styles
+                </Link>
+              </li>
+              <li>
+                <Link href="/churches/programs" className="text-[var(--muted)] hover:text-[var(--foreground)] text-sm">
+                  Programs
+                </Link>
+              </li>
+              <li>
+                <Link href="/churches/programs/kids-ministry" className="text-[var(--muted)] hover:text-[var(--foreground)] text-sm">
+                  Kids Ministry
+                </Link>
+              </li>
+              <li>
+                <Link href="/churches/programs/youth-group" className="text-[var(--muted)] hover:text-[var(--foreground)] text-sm">
+                  Youth Groups
                 </Link>
               </li>
             </ul>
