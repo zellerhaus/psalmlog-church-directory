@@ -80,6 +80,44 @@ export async function generateMetadata({ params }: CityPageProps): Promise<Metad
   };
 }
 
+// Generate dynamic overview text from stats
+function generateOverview(
+  cityName: string,
+  stats: {
+    church_count: number;
+    denominations: Record<string, number>;
+    programs: { kids_ministry: number; youth_group: number; small_groups: number }
+  } | null | undefined
+): string | null {
+  if (!stats || stats.church_count === 0) return null;
+
+  const { church_count, denominations, programs } = stats;
+
+  // Find top denomination
+  const topDenom = Object.entries(denominations)
+    .sort((a, b) => b[1] - a[1])[0];
+
+  // Calculate percentages
+  const kidsPercent = Math.round((programs.kids_ministry / church_count) * 100);
+  const groupsPercent = Math.round((programs.small_groups / church_count) * 100);
+
+  // Build overview
+  let overview = `Whether you're new to ${cityName} or searching for a new church home, you'll discover ${church_count} welcoming congregation${church_count !== 1 ? 's' : ''} in the area.`;
+
+  if (topDenom && topDenom[1] > 1) {
+    overview += ` ${topDenom[0]} churches lead with ${topDenom[1]} locations.`;
+  }
+
+  if (kidsPercent > 0 || groupsPercent > 0) {
+    const parts = [];
+    if (kidsPercent > 0) parts.push(`${kidsPercent}% offer children's programs`);
+    if (groupsPercent > 0) parts.push(`${groupsPercent}% have small group ministries for deeper fellowship`);
+    overview += ` ${parts.join(', and ')}.`;
+  }
+
+  return overview;
+}
+
 // BreadcrumbList Schema
 function BreadcrumbSchema({
   stateInfo,
@@ -276,18 +314,21 @@ export default async function CityPage({ params, searchParams }: CityPageProps) 
               Churches in {cityName}, {stateInfo.abbr}
             </h1>
 
-            {/* AI-generated overview or fallback */}
-            {content?.overview ? (
-              <div className="prose prose-lg max-w-none mb-4">
-                <p className="text-lg text-gray-100 leading-relaxed shadow-sm">
-                  {content.overview}
+            {/* Dynamic overview from stats */}
+            {(() => {
+              const overview = generateOverview(cityName, content?.stats);
+              return overview ? (
+                <div className="prose prose-lg max-w-none mb-4">
+                  <p className="text-lg text-gray-100 leading-relaxed shadow-sm">
+                    {overview}
+                  </p>
+                </div>
+              ) : totalChurchCount > 0 ? (
+                <p className="text-lg text-gray-100 shadow-sm">
+                  {totalChurchCount} church{totalChurchCount !== 1 ? 'es' : ''} found
                 </p>
-              </div>
-            ) : totalChurchCount > 0 ? (
-              <p className="text-lg text-gray-100 shadow-sm">
-                {totalChurchCount} church{totalChurchCount !== 1 ? 'es' : ''} found
-              </p>
-            ) : null}
+              ) : null;
+            })()}
           </div>
         </div>
 
