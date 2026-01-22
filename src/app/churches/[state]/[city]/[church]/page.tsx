@@ -16,6 +16,7 @@ import ChurchClientSection from '@/components/ChurchClientSection';
 import RelatedChurches from '@/components/RelatedChurches';
 import NearbyChurches from '@/components/NearbyChurches';
 import ChurchQuickActions from '@/components/ChurchQuickActions';
+import FavoriteButton from '@/components/FavoriteButton';
 import { US_STATES, SITE_URL, hasEnoughContent, addChurchUtmParams, DENOMINATION_TO_SLUG, WORSHIP_STYLE_TO_SLUG } from '@/lib/constants';
 import { getChurchBySlug, getRelatedChurches, getNearbyChurches } from '@/lib/data';
 import type { Church, ServiceTime } from '@/types/database';
@@ -245,9 +246,22 @@ export default async function ChurchDetailPage({ params }: PageProps) {
               </Link>
             ))}
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-2 font-serif">
-            {church.name}
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] font-serif">
+              {church.name}
+            </h1>
+            <FavoriteButton
+              church={{
+                id: church.id,
+                slug: church.slug,
+                name: church.name,
+                city: church.city,
+                stateAbbr: church.state_abbr,
+                stateSlug: stateSlug,
+                citySlug: citySlug,
+              }}
+            />
+          </div>
           <p className="text-lg text-[var(--muted)] flex items-center gap-2">
             <MapPin className="w-5 h-5" />
             {church.city}, {stateInfo.name}
