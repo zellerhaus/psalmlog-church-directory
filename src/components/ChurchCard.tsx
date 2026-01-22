@@ -1,6 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 import { MapPin, Clock, Users, ChevronRight } from 'lucide-react';
 import type { Church } from '@/types/database';
+import FavoriteButton from '@/components/FavoriteButton';
+import type { FavoriteChurch } from '@/lib/favorites';
 
 interface ChurchCardProps {
   church: Church;
@@ -20,6 +24,17 @@ export default function ChurchCard({ church, stateSlug, citySlug }: ChurchCardPr
   // Get worship style badges
   const worshipStyles = church.worship_style?.slice(0, 2) || [];
 
+  // Prepare church data for FavoriteButton
+  const favoriteChurch: FavoriteChurch = {
+    id: church.id,
+    slug: church.slug,
+    name: church.name,
+    city: church.city,
+    stateAbbr: church.state_abbr,
+    stateSlug,
+    citySlug,
+  };
+
   return (
     <Link href={churchUrl} className="card block p-5 group">
       <div className="flex justify-between items-start mb-3">
@@ -31,7 +46,10 @@ export default function ChurchCard({ church, stateSlug, citySlug }: ChurchCardPr
             <span className="text-sm text-[var(--muted)]">{church.denomination}</span>
           )}
         </div>
-        <ChevronRight className="w-5 h-5 text-[var(--muted)] group-hover:text-[var(--primary)] transition-colors flex-shrink-0" />
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <FavoriteButton church={favoriteChurch} />
+          <ChevronRight className="w-5 h-5 text-[var(--muted)] group-hover:text-[var(--primary)] transition-colors" />
+        </div>
       </div>
 
       <div className="space-y-2 mb-4">
