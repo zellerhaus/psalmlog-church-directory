@@ -2,21 +2,54 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
-import { Menu, X, Search, ChevronDown } from 'lucide-react';
+import { Menu, X, Search, ChevronDown, Heart } from 'lucide-react';
 import { PSALMLOG_URLS } from '@/lib/constants';
+import { getFavoritesCount } from '@/lib/favorites';
 
 interface HeaderProps {
   popularStates?: { name: string; slug: string }[];
+}
+
+// Subscribe to storage events for cross-tab sync and custom favorites events
+function subscribeToFavorites(callback: () => void): () => void {
+  window.addEventListener('storage', callback);
+  return () => window.removeEventListener('storage', callback);
+}
+
+// Server snapshot always returns 0 (no favorites during SSR)
+function getServerFavoritesCount(): number {
+  return 0;
 }
 
 export default function Header({ popularStates = [] }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [favoritesUpdateKey, setFavoritesUpdateKey] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Get favorites count using useSyncExternalStore for SSR safety
+  const getFavoritesSnapshot = useCallback((): number => {
+    return getFavoritesCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [favoritesUpdateKey]);
+
+  const favoritesCount = useSyncExternalStore(
+    subscribeToFavorites,
+    getFavoritesSnapshot,
+    getServerFavoritesCount
+  );
+
+  // Poll for favorites changes (since other components may update localStorage)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFavoritesUpdateKey((k) => k + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (searchOpen && searchInputRef.current) {
@@ -211,6 +244,19 @@ export default function Header({ popularStates = [] }: HeaderProps) {
               </button>
             </div>
             <Link
+              href="/churches/saved"
+              className="relative flex items-center gap-1.5 text-gray-500 hover:text-gray-700"
+              aria-label="Saved churches"
+            >
+              <Heart className="w-5 h-5" />
+              <span className="text-sm">Saved</span>
+              {favoritesCount > 0 && (
+                <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
+                  {favoritesCount > 99 ? '99+' : favoritesCount}
+                </span>
+              )}
+            </Link>
+            <Link
               href={PSALMLOG_URLS.landing}
               className="btn-primary text-sm"
               target="_blank"
@@ -269,6 +315,19 @@ export default function Header({ popularStates = [] }: HeaderProps) {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Browse by Program
+              </Link>
+              <Link
+                href="/churches/saved"
+                className="relative flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Heart className="w-5 h-5" />
+                <span>Saved Churches</span>
+                {favoritesCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs font-medium rounded-full px-2 py-0.5">
+                    {favoritesCount > 99 ? '99+' : favoritesCount}
+                  </span>
+                )}
               </Link>
               <form onSubmit={handleSearch} className="flex gap-2">
                 <input
