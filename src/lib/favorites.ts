@@ -11,6 +11,12 @@ export interface FavoriteChurch {
   stateAbbr: string;
   stateSlug: string;
   citySlug: string;
+  // Optional display data
+  denomination?: string | null;
+  worshipStyle?: string[] | null;
+  hasKidsMinistry?: boolean;
+  hasYouthGroup?: boolean;
+  hasSmallGroups?: boolean;
 }
 
 // Check if we're in a browser environment

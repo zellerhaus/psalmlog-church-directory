@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useSyncExternalStore } from 'react';
+import { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import {
   isFavorite,
@@ -13,53 +13,40 @@ interface FavoriteButtonProps {
   className?: string;
 }
 
-// Subscribe to storage events for cross-tab sync
-function subscribe(callback: () => void): () => void {
-  window.addEventListener('storage', callback);
-  return () => window.removeEventListener('storage', callback);
-}
-
-// Server snapshot always returns false (not favorited)
-function getServerSnapshot(): boolean {
-  return false;
-}
-
 export default function FavoriteButton({
   church,
   className = '',
 }: FavoriteButtonProps) {
-  // Use key to force re-render when toggling
-  const [updateKey, setUpdateKey] = useState(0);
+  const [saved, setSaved] = useState(false);
 
-  // Get current favorite status from localStorage
-  const getSnapshot = useCallback((): boolean => {
-    return isFavorite(church.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [church.id, updateKey]);
-
-  const saved = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  // Check favorite status on mount
+  useEffect(() => {
+    const checkStatus = () => setSaved(isFavorite(church.id));
+    checkStatus();
+  }, [church.id]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    toggleFavorite(church);
-    // Force re-render to pick up new state
-    setUpdateKey((k) => k + 1);
+    const newState = toggleFavorite(church);
+    setSaved(newState);
   };
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      className={`p-2 rounded-full hover:bg-[var(--card-hover)] transition-colors ${className}`}
+      className={`relative z-10 p-2 rounded-full hover:bg-[var(--card-hover)] transition-colors ${className}`}
       aria-label={saved ? 'Remove from saved' : 'Save church'}
     >
-      {saved ? (
-        <Heart className="w-5 h-5 text-red-500 fill-red-500" />
-      ) : (
-        <Heart className="w-5 h-5 text-[var(--muted)] hover:text-red-500 transition-colors" />
-      )}
+      <Heart
+        className="w-5 h-5 transition-colors"
+        style={{
+          color: saved ? '#ef4444' : 'var(--muted)',
+          fill: saved ? '#ef4444' : 'none',
+        }}
+      />
     </button>
   );
 }

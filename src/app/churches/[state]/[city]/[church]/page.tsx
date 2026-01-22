@@ -259,6 +259,11 @@ export default async function ChurchDetailPage({ params }: PageProps) {
                 stateAbbr: church.state_abbr,
                 stateSlug: stateSlug,
                 citySlug: citySlug,
+                denomination: church.denomination,
+                worshipStyle: church.worship_style,
+                hasKidsMinistry: church.has_kids_ministry,
+                hasYouthGroup: church.has_youth_group,
+                hasSmallGroups: church.has_small_groups,
               }}
             />
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore, useCallback, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Heart, Trash2 } from 'lucide-react';
 import ChurchCard from '@/components/ChurchCard';
@@ -15,22 +15,21 @@ function favoriteToChurch(favorite: FavoriteChurch): Church {
     slug: favorite.slug,
     name: favorite.name,
     city: favorite.city,
-    state: '', // Not stored in favorites, not displayed in ChurchCard
+    state: '',
     state_abbr: favorite.stateAbbr,
-    // Provide minimal required fields - ChurchCard only uses these
     address: '',
     zip: '',
     lat: 0,
     lng: 0,
-    denomination: null,
+    denomination: favorite.denomination ?? null,
     website: null,
     phone: null,
     email: null,
-    worship_style: null,
+    worship_style: favorite.worshipStyle ?? null,
     service_times: null,
-    has_kids_ministry: false,
-    has_youth_group: false,
-    has_small_groups: false,
+    has_kids_ministry: favorite.hasKidsMinistry ?? false,
+    has_youth_group: favorite.hasYouthGroup ?? false,
+    has_small_groups: favorite.hasSmallGroups ?? false,
     ai_description: null,
     ai_what_to_expect: null,
     ai_generated_at: null,
@@ -42,30 +41,22 @@ function favoriteToChurch(favorite: FavoriteChurch): Church {
 }
 
 export default function SavedChurchesPage() {
-  // Force re-render when favorites change
-  const [updateKey, setUpdateKey] = useState(0);
+  const [favorites, setFavorites] = useState<FavoriteChurch[]>([]);
 
-  // SSR-safe localStorage access using useSyncExternalStore
-  const favorites = useSyncExternalStore(
-    useCallback((callback: () => void) => {
-      // Poll for changes since storage event only fires cross-tab
-      const interval = setInterval(() => {
-        callback();
-      }, 500);
-      return () => clearInterval(interval);
-    }, []),
-    () => {
-      // Client snapshot
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _ = updateKey; // Force dependency on updateKey
-      return getFavorites();
-    },
-    () => [] // Server snapshot - empty array
-  );
+  // Load favorites on mount
+  useEffect(() => {
+    // Initial load from localStorage
+    const loadFavorites = () => setFavorites(getFavorites());
+    loadFavorites();
+
+    // Poll for changes since storage event only fires cross-tab
+    const interval = setInterval(loadFavorites, 500);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleClearAll = () => {
     clearFavorites();
-    setUpdateKey((k) => k + 1);
+    setFavorites([]);
   };
 
   return (
@@ -114,7 +105,7 @@ export default function SavedChurchesPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {favorites.map((favorite) => (
             <ChurchCard
               key={favorite.id}

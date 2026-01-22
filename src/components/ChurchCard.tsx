@@ -33,10 +33,16 @@ export default function ChurchCard({ church, stateSlug, citySlug }: ChurchCardPr
     stateAbbr: church.state_abbr,
     stateSlug,
     citySlug,
+    denomination: church.denomination,
+    worshipStyle: church.worship_style,
+    hasKidsMinistry: church.has_kids_ministry,
+    hasYouthGroup: church.has_youth_group,
+    hasSmallGroups: church.has_small_groups,
   };
 
   return (
-    <Link href={churchUrl} className="card block p-5 group">
+    <div className="card block p-5 group relative">
+      <Link href={churchUrl} className="absolute inset-0 z-0" aria-label={`View ${church.name}`} />
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
           <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors mb-1">
@@ -46,7 +52,7 @@ export default function ChurchCard({ church, stateSlug, citySlug }: ChurchCardPr
             <span className="text-sm text-[var(--muted)]">{church.denomination}</span>
           )}
         </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-1 flex-shrink-0 relative z-10">
           <FavoriteButton church={favoriteChurch} />
           <ChevronRight className="w-5 h-5 text-[var(--muted)] group-hover:text-[var(--primary)] transition-colors" />
         </div>
@@ -55,7 +61,11 @@ export default function ChurchCard({ church, stateSlug, citySlug }: ChurchCardPr
       <div className="space-y-2 mb-4">
         <div className="flex items-start gap-2 text-sm text-[var(--muted)]">
           <MapPin className="w-4 h-4 text-[var(--muted)] flex-shrink-0 mt-0.5" />
-          <span>{church.address}, {church.city}, {church.state_abbr} {church.zip}</span>
+          <span>
+            {church.address ? `${church.address}, ` : ''}
+            {church.city}, {church.state_abbr}
+            {church.zip ? ` ${church.zip}` : ''}
+          </span>
         </div>
 
         {serviceDisplay && (
@@ -81,6 +91,6 @@ export default function ChurchCard({ church, stateSlug, citySlug }: ChurchCardPr
           </span>
         )}
       </div>
-    </Link>
+    </div>
   );
 }
