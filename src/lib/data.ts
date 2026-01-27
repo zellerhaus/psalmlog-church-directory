@@ -1283,21 +1283,21 @@ async function _getProgramCounts(): Promise<{ program: string; field: 'has_kids_
     { program: 'Small Groups', field: 'has_small_groups' },
   ];
 
-  const results: { program: string; field: 'has_kids_ministry' | 'has_youth_group' | 'has_small_groups'; count: number }[] = [];
+  // Parallelize all count queries for better performance
+  const results = await Promise.all(
+    programs.map(async (p) => {
+      const { count, error } = await supabase!
+        .from('churches')
+        .select('*', { count: 'exact', head: true })
+        .eq(p.field, true);
 
-  for (const p of programs) {
-    const { count, error } = await supabase
-      .from('churches')
-      .select('*', { count: 'exact', head: true })
-      .eq(p.field, true);
-
-    if (error) {
-      handleError(error, `getProgramCounts:${p.field}`);
-      results.push({ ...p, count: 0 });
-    } else {
-      results.push({ ...p, count: count || 0 });
-    }
-  }
+      if (error) {
+        handleError(error, `getProgramCounts:${p.field}`);
+        return { ...p, count: 0 };
+      }
+      return { ...p, count: count || 0 };
+    })
+  );
 
   return results.sort((a, b) => b.count - a.count);
 }
@@ -1307,3 +1307,130 @@ export const getProgramCounts = unstable_cache(
   ['program-counts'],
   { revalidate: CACHE_REVALIDATE_WEEK, tags: ['church-counts'] }
 );
+
+// ============================================================================
+// QUIZ-BASED SEARCH
+// ============================================================================
+
+export interface QuizSearchFilters {
+  denominations?: string[];
+  worshipStyles?: string[];
+  hasKidsMinistry?: boolean;
+  hasYouthGroup?: boolean;
+  hasSmallGroups?: boolean;
+}
+
+// Search churches by quiz result filters with optional location
+export async function searchChurchesByQuizFilters(
+  location: string,
+  filters: QuizSearchFilters,
+  page: number = 1,
+  pageSize: number = DEFAULT_PAGE_SIZE
+): Promise<PaginatedResult<Church>> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+
+  const isZipCode = /^\d{5}$/.test(location.trim());
+
+  let query = supabase
+    .from('churches')
+    .select('*', { count: 'exact' });
+
+  // Location filter
+  if (isZipCode) {
+    query = query.eq('zip', location.trim());
+  } else if (location) {
+    query = query.ilike('city', `%${location}%`);
+  }
+
+  // Filter by any of the matching denominations (OR logic)
+  if (filters.denominations && filters.denominations.length > 0) {
+    query = query.in('denomination', filters.denominations);
+  }
+
+  // Filter by any of the matching worship styles (uses array overlap)
+  if (filters.worshipStyles && filters.worshipStyles.length > 0) {
+    query = query.overlaps('worship_style', filters.worshipStyles);
+  }
+
+  // Program filters (AND logic - must have if specified)
+  if (filters.hasKidsMinistry) {
+    query = query.eq('has_kids_ministry', true);
+  }
+  if (filters.hasYouthGroup) {
+    query = query.eq('has_youth_group', true);
+  }
+  if (filters.hasSmallGroups) {
+    query = query.eq('has_small_groups', true);
+  }
+
+  // Pagination
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  query = query.range(from, to).order('name');
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    handleError(error, 'searchChurchesByQuizFilters');
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+
+  return {
+    data: data || [],
+    total: count || 0,
+    page,
+    pageSize,
+    totalPages: Math.ceil((count || 0) / pageSize),
+  };
+}
+
+// Get count of churches matching quiz filters in a location
+export async function getQuizMatchCount(
+  location: string,
+  filters: QuizSearchFilters
+): Promise<number> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return 0;
+  }
+
+  const isZipCode = /^\d{5}$/.test(location.trim());
+
+  let query = supabase
+    .from('churches')
+    .select('*', { count: 'exact', head: true });
+
+  if (isZipCode) {
+    query = query.eq('zip', location.trim());
+  } else if (location) {
+    query = query.ilike('city', `%${location}%`);
+  }
+
+  if (filters.denominations && filters.denominations.length > 0) {
+    query = query.in('denomination', filters.denominations);
+  }
+
+  if (filters.worshipStyles && filters.worshipStyles.length > 0) {
+    query = query.overlaps('worship_style', filters.worshipStyles);
+  }
+
+  if (filters.hasKidsMinistry) {
+    query = query.eq('has_kids_ministry', true);
+  }
+  if (filters.hasYouthGroup) {
+    query = query.eq('has_youth_group', true);
+  }
+  if (filters.hasSmallGroups) {
+    query = query.eq('has_small_groups', true);
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    handleError(error, 'getQuizMatchCount');
+    return 0;
+  }
+
+  return count || 0;
+}

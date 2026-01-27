@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { MapPin, Church, Users, Search as SearchIcon, Heart, Music, Baby, BookOpen, BarChart3, ChevronRight } from 'lucide-react';
+import { MapPin, Church, Users, Search as SearchIcon, Heart, Music, Baby, BookOpen, BarChart3, ChevronRight, Sparkles } from 'lucide-react';
 import SearchBox from '@/components/SearchBox';
 import NearMeButton from '@/components/NearMeButton';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
@@ -158,6 +158,30 @@ export default async function ChurchesHomePage() {
               Use your location to instantly find churches in your area. We&apos;ll show you the closest churches with service times, visitor info, and directions.
             </p>
             <NearMeButton variant="primary" className="mx-auto" />
+          </div>
+        </div>
+      </section>
+
+      {/* Quiz CTA Section */}
+      <section className="py-16 bg-[var(--primary)] text-white">
+        <div className="container-page">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-white/10 rounded-2xl mb-4">
+              <Sparkles className="w-7 h-7 text-white" />
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4 font-serif">
+              Not Sure Where to Start?
+            </h2>
+            <p className="text-gray-200 mb-8 max-w-xl mx-auto">
+              Take our 2-minute quiz to discover what type of church matches your worship style, community needs, and spiritual priorities.
+            </p>
+            <Link
+              href="/churches/quiz"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[var(--primary)] font-medium rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Take the Church Quiz
+              <ChevronRight className="w-5 h-5" />
+            </Link>
           </div>
         </div>
       </section>

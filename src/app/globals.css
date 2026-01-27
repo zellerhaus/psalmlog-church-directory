@@ -135,3 +135,36 @@ h1, h2, h3, h4, h5, h6 {
 .focus-ring {
   @apply focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:ring-offset-2;
 }
+
+/* Prose styling for long-form content */
+.prose {
+  @apply text-[var(--foreground)] leading-relaxed;
+}
+
+.prose h2 {
+  @apply text-2xl font-bold text-[var(--foreground)] mt-8 mb-4;
+}
+
+.prose h3 {
+  @apply text-xl font-semibold text-[var(--foreground)] mt-6 mb-3;
+}
+
+.prose p {
+  @apply mb-4 text-[var(--muted)];
+}
+
+.prose ul {
+  @apply list-disc list-inside mb-4 space-y-2;
+}
+
+.prose li {
+  @apply text-[var(--muted)];
+}
+
+.prose li strong {
+  @apply text-[var(--foreground)];
+}
+
+.prose a {
+  @apply text-[var(--primary)] underline hover:no-underline;
+}

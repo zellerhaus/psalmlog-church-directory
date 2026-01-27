@@ -20,13 +20,21 @@ export default function Header({ popularStates = [] }: HeaderProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // Poll for favorites changes
+  // Listen for favorites changes via storage events + fallback polling
   useEffect(() => {
     const updateCount = () => setFavoritesCount(getFavoritesCount());
     updateCount();
 
-    const interval = setInterval(updateCount, 1000);
-    return () => clearInterval(interval);
+    // Storage event fires when localStorage changes in other tabs
+    window.addEventListener('storage', updateCount);
+
+    // Fallback polling at longer interval for same-tab changes
+    const interval = setInterval(updateCount, 5000);
+
+    return () => {
+      window.removeEventListener('storage', updateCount);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -151,6 +159,13 @@ export default function Header({ popularStates = [] }: HeaderProps) {
               {/* Dropdown Menu */}
               <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 <div className="bg-white border border-[var(--border)] rounded-lg shadow-lg py-2 min-w-[200px]">
+                  <Link
+                    href="/churches/quiz"
+                    className="block px-4 py-2 text-[var(--primary)] hover:bg-[var(--secondary)] font-medium"
+                  >
+                    Take the Quiz
+                  </Link>
+                  <div className="border-t border-[var(--border)] my-2" />
                   <Link
                     href="/churches/worship"
                     className="block px-4 py-2 text-gray-600 hover:bg-[var(--secondary)] hover:text-gray-900"
@@ -302,6 +317,13 @@ export default function Header({ popularStates = [] }: HeaderProps) {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Browse by Program
+              </Link>
+              <Link
+                href="/churches/quiz"
+                className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Take the Quiz
               </Link>
               <Link
                 href="/churches/saved"
