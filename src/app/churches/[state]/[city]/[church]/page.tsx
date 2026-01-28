@@ -17,7 +17,7 @@ import RelatedChurches from '@/components/RelatedChurches';
 import NearbyChurches from '@/components/NearbyChurches';
 import ChurchQuickActions from '@/components/ChurchQuickActions';
 import FavoriteButton from '@/components/FavoriteButton';
-import { US_STATES, SITE_URL, hasEnoughContent, addChurchUtmParams, DENOMINATION_TO_SLUG, WORSHIP_STYLE_TO_SLUG } from '@/lib/constants';
+import { US_STATES, SITE_URL, SITE_NAME, hasEnoughContent, addChurchUtmParams, DENOMINATION_TO_SLUG, WORSHIP_STYLE_TO_SLUG } from '@/lib/constants';
 import { getChurchBySlug, getRelatedChurches, getNearbyChurches } from '@/lib/data';
 import type { Church, ServiceTime } from '@/types/database';
 
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? church.ai_description.slice(0, 152) + '...'
     : `Service times, location, and visitor info for ${church.name} in ${church.city}, ${stateInfo.abbr}.`;
 
-  const canonicalUrl = `https://psalmlog.com/churches/${stateSlug}/${citySlug}/${churchSlug}`;
+  const canonicalUrl = `${SITE_URL}/churches/${stateSlug}/${citySlug}/${churchSlug}`;
 
   // Check if page has enough unique content for indexing
   const shouldIndex = hasEnoughContent(church.ai_description, church.ai_what_to_expect);
@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: canonicalUrl,
       type: 'website',
-      siteName: 'Psalmlog Church Finder',
+      siteName: SITE_NAME,
       images: [
         {
           url: `${SITE_URL}/og/church/${stateSlug}/${citySlug}/${churchSlug}`,
@@ -91,8 +91,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+// Map day names to schema.org DayOfWeek values
+const DAY_MAP: Record<string, string> = {
+  sunday: 'https://schema.org/Sunday',
+  monday: 'https://schema.org/Monday',
+  tuesday: 'https://schema.org/Tuesday',
+  wednesday: 'https://schema.org/Wednesday',
+  thursday: 'https://schema.org/Thursday',
+  friday: 'https://schema.org/Friday',
+  saturday: 'https://schema.org/Saturday',
+};
+
 // Schema.org markup component
 function ChurchSchema({ church, stateInfo }: { church: Church; stateInfo: typeof US_STATES[number] }) {
+  // Build opening hours from service times
+  const openingHours = church.service_times?.map((st: ServiceTime) => {
+    const dayOfWeek = DAY_MAP[st.day.toLowerCase()];
+    if (!dayOfWeek) return null;
+    return {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek,
+      ...(st.name && { description: st.name }),
+    };
+  }).filter(Boolean);
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Church',
@@ -114,6 +136,7 @@ function ChurchSchema({ church, stateInfo }: { church: Church; stateInfo: typeof
     ...(church.website && { url: church.website }),
     ...(church.denomination && { additionalType: church.denomination }),
     ...(church.ai_description && { description: church.ai_description }),
+    ...(openingHours && openingHours.length > 0 && { openingHoursSpecification: openingHours }),
   };
 
   return (
@@ -140,19 +163,19 @@ function BreadcrumbSchema({ stateInfo, cityName, churchName, stateSlug, citySlug
         '@type': 'ListItem',
         position: 1,
         name: 'Churches',
-        item: 'https://psalmlog.com/churches',
+        item: `${SITE_URL}/churches`,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: stateInfo.name,
-        item: `https://psalmlog.com/churches/${stateSlug}`,
+        item: `${SITE_URL}/churches/${stateSlug}`,
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: cityName,
-        item: `https://psalmlog.com/churches/${stateSlug}/${citySlug}`,
+        item: `${SITE_URL}/churches/${stateSlug}/${citySlug}`,
       },
       {
         '@type': 'ListItem',
@@ -192,14 +215,13 @@ export default async function ChurchDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch related churches for internal linking (same city/state)
-  const relatedChurches = await getRelatedChurches(stateInfo.abbr, church.city, church.id, 4);
-
-  // Fetch nearby churches by geographic proximity (PostGIS)
-  let nearbyChurches: Church[] = [];
-  if (church.lat && church.lng) {
-    nearbyChurches = await getNearbyChurches(church.lat, church.lng, 10, 5);
-  }
+  // Parallelize related and nearby church queries for better performance
+  const [relatedChurches, nearbyChurches] = await Promise.all([
+    getRelatedChurches(stateInfo.abbr, church.city, church.id, 4),
+    church.lat && church.lng
+      ? getNearbyChurches(church.lat, church.lng, 10, 5)
+      : Promise.resolve([] as Church[]),
+  ]);
 
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${church.name} ${church.address} ${church.city} ${church.state_abbr}`

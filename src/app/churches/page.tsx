@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { MapPin, Church, Users, Search as SearchIcon, Heart, Music, Baby, BookOpen, BarChart3, ChevronRight, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 import SearchBox from '@/components/SearchBox';
 import NearMeButton from '@/components/NearMeButton';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
@@ -15,6 +16,9 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: `Find a Church Near You`,
   description: `Search churches across America. Filter by denomination and worship style. Visitor guides for every church.`,
+  alternates: {
+    canonical: `${SITE_URL}/churches`,
+  },
   openGraph: {
     title: `Find a Church Near You | ${SITE_NAME}`,
     description: SITE_DESCRIPTION,
@@ -72,10 +76,13 @@ export default async function ChurchesHomePage() {
       <section className="relative bg-[var(--primary)] text-[var(--primary-foreground)]">
         {/* Background Image with Dark Overlay */}
         <div className="absolute inset-0 z-0 select-none overflow-hidden">
-          <img
+          <Image
             src="/churches/images/home-hero.png"
             alt="Church interior"
             className="absolute inset-0 w-full h-full object-cover object-center"
+            fill
+            sizes="100vw"
+            priority
           />
           <div className="absolute inset-0 bg-black/50" />
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--primary)] via-[var(--primary)]/80 to-transparent" />

@@ -43,6 +43,7 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
     return {
       title: `Search Results for "${query}"`,
       description: `Find churches matching "${query}". Filter by denomination and worship style.`,
+      robots: { index: false, follow: true },
       openGraph: {
         ...baseMetadata.openGraph,
         title: `Search Results for "${query}" | ${SITE_NAME}`,
@@ -59,6 +60,7 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
   return {
     title: `Search Churches`,
     description: 'Search for churches by city, zip code, or name. Filter by denomination and worship style.',
+    robots: { index: false, follow: true },
     openGraph: {
       ...baseMetadata.openGraph,
       title: `Search Churches | ${SITE_NAME}`,

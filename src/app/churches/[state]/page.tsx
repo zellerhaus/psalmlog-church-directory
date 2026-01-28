@@ -111,6 +111,37 @@ function BreadcrumbSchema({ stateInfo, stateSlug }: { stateInfo: typeof US_STATE
   );
 }
 
+// ItemList Schema for city listings
+function CityListSchema({
+  cities,
+  stateSlug,
+}: {
+  cities: { name: string; slug: string; church_count: number }[];
+  stateSlug: string;
+}) {
+  if (cities.length === 0) return null;
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Cities with Churches`,
+    numberOfItems: cities.length,
+    itemListElement: cities.slice(0, 20).map((city, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: city.name,
+      url: `${SITE_URL}/churches/${stateSlug}/${city.slug}`,
+    })),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 export default async function StatePage({ params, searchParams }: StatePageProps) {
   const { state: stateSlug } = await params;
   const { page } = await searchParams;
@@ -129,14 +160,12 @@ export default async function StatePage({ params, searchParams }: StatePageProps
   let content: Awaited<ReturnType<typeof getStateContent>> = null;
 
   try {
-    // Get total church count for the state
-    totalChurches = await getChurchCountByState(stateInfo.abbr);
-
-    // Get cities with real church counts (aggregated from churches)
-    cities = await getCitiesWithChurchCounts(stateInfo.abbr);
-
-    // Get pre-generated content for this state
-    content = await getStateContent(stateInfo.abbr);
+    // Parallelize independent queries for better performance
+    [totalChurches, cities, content] = await Promise.all([
+      getChurchCountByState(stateInfo.abbr),
+      getCitiesWithChurchCounts(stateInfo.abbr),
+      getStateContent(stateInfo.abbr),
+    ]);
   } catch {
     // Database not connected, use empty state
   }
@@ -144,6 +173,7 @@ export default async function StatePage({ params, searchParams }: StatePageProps
   return (
     <>
       <BreadcrumbSchema stateInfo={stateInfo} stateSlug={stateSlug} />
+      <CityListSchema cities={cities} stateSlug={stateSlug} />
       <div className="container-page py-8">
         <Breadcrumbs
           items={[{ label: stateInfo.name }]}

@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import { Fragment, Suspense } from 'react';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import ChurchCard from '@/components/ChurchCard';
@@ -217,8 +218,35 @@ async function ChurchList({
     );
   }
 
+  // Only emit ItemList schema on unfiltered first page for search engines
+  const isUnfilteredFirstPage = page === 1
+    && !filters.denomination
+    && !filters.worship_style
+    && !filters.has_kids_ministry
+    && !filters.has_youth_group
+    && !filters.has_small_groups;
+
+  const itemListSchema = isUnfilteredFirstPage ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Churches in ${cityName}`,
+    numberOfItems: result.total,
+    itemListElement: result.data.map((church, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: church.name,
+      url: `${SITE_URL}/churches/${stateSlug}/${citySlug}/${church.slug}`,
+    })),
+  } : null;
+
   return (
     <>
+      {itemListSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+        />
+      )}
       <div className="grid gap-4">
         {result.data.map((church, index) => (
           <Fragment key={church.id}>
@@ -265,17 +293,19 @@ export default async function CityPage({ params, searchParams }: CityPageProps) 
   let content: Awaited<ReturnType<typeof getCityContent>> = null;
 
   try {
+    // First fetch city data (needed for cityName)
     cityData = await getCityBySlug(stateInfo.abbr, citySlug);
     if (cityData) {
       cityName = cityData.name;
     }
 
-    // Get real church count by querying the churches table (no filters, page 1)
-    const countResult = await getChurchesByCity(stateInfo.abbr, cityName, {}, 1, 1);
+    // Parallelize independent queries for better performance
+    const [countResult, cityContent] = await Promise.all([
+      getChurchesByCity(stateInfo.abbr, cityName, {}, 1, 1),
+      getCityContent(stateInfo.abbr, citySlug),
+    ]);
     totalChurchCount = countResult.total;
-
-    // Get pre-generated content for this city
-    content = await getCityContent(stateInfo.abbr, citySlug);
+    content = cityContent;
   } catch {
     // Database not connected
   }
@@ -300,10 +330,13 @@ export default async function CityPage({ params, searchParams }: CityPageProps) 
         <div className="relative mb-8 -mx-4 md:-mx-8 px-4 md:px-8 py-10 md:py-12 bg-[var(--primary)] text-white overflow-hidden rounded-xl">
           {/* Background Image with Dark Overlay */}
           <div className="absolute inset-0 z-0 select-none">
-            <img
+            <Image
               src="/churches/images/city-hero.png"
               alt="Cityscape"
               className="absolute inset-0 w-full h-full object-cover object-center"
+              fill
+              sizes="100vw"
+              priority
             />
             <div className="absolute inset-0 bg-black/50" />
             <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)] via-[var(--primary)]/80 to-[var(--primary)]/60" />

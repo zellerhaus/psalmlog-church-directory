@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface HeroImageProps {
   src: string;
@@ -13,10 +14,13 @@ export default function HeroImage({ src, fallbackSrc, alt, className }: HeroImag
   const [imgSrc, setImgSrc] = useState(src);
 
   return (
-    <img
+    <Image
       src={imgSrc}
       alt={alt}
       className={className}
+      fill
+      sizes="100vw"
+      priority
       onError={() => setImgSrc(fallbackSrc)}
     />
   );

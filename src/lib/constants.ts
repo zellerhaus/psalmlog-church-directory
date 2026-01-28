@@ -179,9 +179,8 @@ export function countWords(...texts: (string | null | undefined)[]): number {
 }
 
 // Check if content meets minimum threshold for indexing
-// Currently disabled - all pages are indexed regardless of content length
-export function hasEnoughContent(..._texts: (string | null | undefined)[]): boolean {
-  return true;
+export function hasEnoughContent(...texts: (string | null | undefined)[]): boolean {
+  return countWords(...texts) >= MIN_CONTENT_WORDS;
 }
 
 // App store URLs
