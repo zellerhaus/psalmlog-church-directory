@@ -56,16 +56,17 @@ const nextConfig: NextConfig = {
             value: 'strict-origin-when-cross-origin',
           },
           {
-            // Relaxed CSP to allow GTM to load third-party scripts dynamically
+            // CSP allowing GTM and its injected third-party scripts
             // Security is maintained via frame-ancestors (clickjacking) and form-action
-            // Cloudflare Turnstile requires challenges.cloudflare.com for scripts and frames
             key: 'Content-Security-Policy',
             value: [
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
-              "frame-src https://challenges.cloudflare.com",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://www.googletagmanager.com",
+              "frame-src https://challenges.cloudflare.com https://www.facebook.com https://td.doubleclick.net",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.google-analytics.com https://static.cloudflareinsights.com https://connect.facebook.net https://cdn.amplitude.com https://vercel.live",
+              "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://*.cloudflareinsights.com https://api2.amplitude.com https://www.facebook.com https://challenges.cloudflare.com https://region1.google-analytics.com https://googleads.g.doubleclick.net",
+              "img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://googleads.g.doubleclick.net https://www.google.com https://*.supabase.co",
             ].join('; '),
           },
         ],
