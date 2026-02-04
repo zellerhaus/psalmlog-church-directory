@@ -1064,6 +1064,63 @@ export const getChurchCountByDenomination = (denomination: string) =>
     { revalidate: CACHE_REVALIDATE_WEEK, tags: ['church-counts', `denomination-${denomination.toLowerCase().replace(/\s+/g, '-')}`] }
   )();
 
+// Internal function to get worship style distribution for a denomination
+async function _getDenominationWorshipStyles(denomination: string): Promise<{ style: string; count: number }[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  const allData: { worship_style: string[] | null }[] = [];
+  let offset = 0;
+  const batchSize = 1000;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('churches')
+      .select('worship_style')
+      .eq('denomination', denomination)
+      .range(offset, offset + batchSize - 1);
+
+    if (error) {
+      handleError(error, 'getDenominationWorshipStyles');
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      break;
+    }
+
+    allData.push(...(data as { worship_style: string[] | null }[]));
+
+    if (data.length < batchSize) {
+      break;
+    }
+
+    offset += batchSize;
+  }
+
+  const styleCounts = new Map<string, number>();
+  for (const church of allData) {
+    if (church.worship_style) {
+      for (const style of church.worship_style) {
+        styleCounts.set(style, (styleCounts.get(style) || 0) + 1);
+      }
+    }
+  }
+
+  return Array.from(styleCounts.entries())
+    .map(([style, count]) => ({ style, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+// Get worship style distribution for a denomination (cached for 1 week)
+export const getDenominationWorshipStyles = (denomination: string) =>
+  unstable_cache(
+    () => _getDenominationWorshipStyles(denomination),
+    ['denomination-worship-styles', denomination],
+    { revalidate: CACHE_REVALIDATE_WEEK, tags: ['denomination-stats', `denomination-${denomination.toLowerCase().replace(/\s+/g, '-')}`] }
+  )();
+
 // Internal function to get total church count by worship style
 async function _getChurchCountByWorshipStyle(worshipStyle: string): Promise<number> {
   if (!isSupabaseConfigured() || !supabase) {

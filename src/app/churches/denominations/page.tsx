@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Church } from 'lucide-react';
+import { Church, ArrowLeftRight } from 'lucide-react';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import PsalmlogCTA from '@/components/PsalmlogCTA';
 import FirstVisitGuideCTA from '@/components/FirstVisitGuideCTA';
@@ -158,6 +158,26 @@ export default async function DenominationsPage() {
                 </Link>
               ))}
             </div>
+
+            {/* Compare Denominations CTA */}
+            <Link
+              href="/churches/denominations/compare"
+              className="mt-8 card p-6 flex items-center gap-4 hover:border-[var(--primary)] group"
+            >
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-[var(--secondary)] rounded-lg flex items-center justify-center group-hover:bg-[var(--primary)]/10 transition-colors">
+                  <ArrowLeftRight className="w-6 h-6 text-[var(--primary)]" />
+                </div>
+              </div>
+              <div>
+                <h2 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
+                  Compare Denominations Side by Side
+                </h2>
+                <p className="text-sm text-[var(--muted)] mt-0.5">
+                  See how any two denominations differ in beliefs, worship, governance, and practice.
+                </p>
+              </div>
+            </Link>
 
             {/* About Denominations Section */}
             <section className="mt-12">
